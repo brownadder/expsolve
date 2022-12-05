@@ -1,0 +1,40 @@
+[project]
+name = "expsolve"
+version = "0.0.1"
+description = "Exponential solvers for PDEs of quantum mechanics"
+readme = "README.md"
+license = { text = "MIT" }
+
+keywords = [
+    "quantum", "PDE", "exponential", "splitting", "integrator", "fourier", "dispersive"
+]
+
+authors = [
+  { name="Pranav Singh", email="ps2106@bath.ac.uk" },
+]
+
+maintainers = [
+  { name="Pranav Singh", email="ps2106@bath.ac.uk" },
+]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Physics"
+]
+
+requires-python = ">=3.7"
+dependencies = [
+    "numpy>=1.16.5",
+    "scipy>=1.7"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/brownadder/expsolve"
+"Bug Tracker" = "https://github.com/brownadder/expsolve"
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
