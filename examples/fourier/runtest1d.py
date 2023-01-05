@@ -8,6 +8,7 @@ from scipy.sparse.linalg import expm
 import matplotlib.pyplot as plt
 import expsolve.fourier as fe
 
+
 # Create a 1D grid
 xrange = [0, 2*np.pi]
 x = fe.grid1d(100, xrange)     #
