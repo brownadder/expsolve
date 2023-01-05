@@ -8,7 +8,6 @@ from scipy.sparse.linalg import expm
 import matplotlib.pyplot as plt
 import expsolve.fourier as fe
 
-
 # Create a 1D grid
 xrange = [0, 2*np.pi]
 x = fe.grid1d(100, xrange)     #
@@ -17,7 +16,6 @@ x = fe.grid1d(100, xrange)     #
 s = np.sin(x)
 ds = fe.diffop(0,1,s,xrange)   # 1st derivative using diffop
 d2s = fe.diffop(0,2,s,xrange)  # 2st derivative using diffop
-
 
 plt.plot(x, s)
 plt.plot(x, np.real(ds))
