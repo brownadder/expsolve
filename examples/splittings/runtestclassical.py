@@ -17,18 +17,15 @@ V = x**4 - 10*x**2
 eLu = lambda h, u: es.fourier.diffopexp(0, 2, 1j*h, u, xr)
 eVu = lambda h, u: np.exp(-1j*h*V)*u
 
-trotterstep = lambda h, u0: es.splittings.classical(h, u0, eLu, eVu, [1.], [1.])
-strangstep = lambda h, u0: es.splittings.classical(h, u0, eLu, eVu, [0.,1.], [0.5,0.5])
+trotteralpha, trotterbeta = es.splittings.classical.consistent([],[])
+strangalpha, strangbeta = es.splittings.classical.symmetric([],[])
+a = np.array([0.0792036964311957, 0.353172906049774, -0.0420650803577195])
+b = np.array([0.209515106613362, -0.143851773179818])
+blanesmoanalpha, blanesmoanbeta = es.splittings.classical.symmetric(a,b)
 
-a = [0.0792036964311957, 0.353172906049774, -0.0420650803577195]
-a4 = 1 - 2*sum(a)
-alpha = a + [a4] + a[::-1]
-
-b = [0.209515106613362, -0.143851773179818]
-b3 = 0.5 - sum(b)
-beta = b + [b3, b3] + b[::-1] + [0]
-blanesmoanstep = lambda h, u0: es.splittings.classical(h, u0, eLu, eVu, alpha, beta)
-
+trotterstep = lambda h, u0: es.splittings.classical.stepper(h, u0, eVu, eLu, trotteralpha, trotterbeta)
+strangstep = lambda h, u0: es.splittings.classical.stepper(h, u0, eVu, eLu, strangalpha, strangbeta)
+blanesmoanstep = lambda h, u0: es.splittings.classical.stepper(h, u0, eVu, eLu, blanesmoanalpha, blanesmoanbeta)
 
 
 observables = {'energy': lambda u: es.fourier.observable(lambda psi: -es.fourier.diffop(0, 2, psi, xr) + V*psi, u, xr), 
