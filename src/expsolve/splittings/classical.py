@@ -2,14 +2,18 @@
 # Use of this source code is governed by the MIT license that can be found in the LICENSE file.
 
 
-def stepper(h, u0, expAu, expBu, alpha, beta):
+def stepper(t, h, u0, flowAu, flowBu, alpha, beta):
     u = u0
+    tauA = t   # in time-ordered flows
+    tauB = t   # time either moves with A or with B
     assert(len(alpha) == len(beta))
     for k in range(len(alpha)):
         if abs(alpha[k]) > 1e-14:
-            u = expAu(h*alpha[k], u)
+            u = flowAu(t, tauB, h, alpha[k], u)   
+            tauA = tauA + h*alpha[k]
         if abs(beta[k]) > 1e-14:
-            u = expBu(h*beta[k], u)
+            u = flowBu(t, tauA, h, beta[k], u)
+            tauB = tauB + h*beta[k]
     return u
 
 
