@@ -14,18 +14,18 @@ u = u/es.fourier.l2norm(u, xr)
 
 V = x**4 - 10*x**2
 
-eLu = lambda h, u: es.fourier.diffopexp(0, 2, 1j*h, u, xr)
-eVu = lambda h, u: np.exp(-1j*h*V)*u
+eLu = lambda t, tauV, h, c, u: es.fourier.diffopexp(0, 2, 1j*h*c, u, xr)
+eVu = lambda t, tauL, h, c, u: np.exp(-1j*h*c*V)*u
 
 trotteralpha, trotterbeta = es.splittings.classical.consistent([],[])
 strangalpha, strangbeta = es.splittings.classical.symmetric([],[])
 a = np.array([0.0792036964311957, 0.353172906049774, -0.0420650803577195])
 b = np.array([0.209515106613362, -0.143851773179818])
-blanesmoanalpha, blanesmoanbeta = es.splittings.classical.symmetric(a,b)
+blanesmoanalpha, blanesmoanbeta = es.splittings.classical.symmetric(a, b)
 
-trotterstep = lambda h, u0: es.splittings.classical.stepper(h, u0, eVu, eLu, trotteralpha, trotterbeta)
-strangstep = lambda h, u0: es.splittings.classical.stepper(h, u0, eVu, eLu, strangalpha, strangbeta)
-blanesmoanstep = lambda h, u0: es.splittings.classical.stepper(h, u0, eVu, eLu, blanesmoanalpha, blanesmoanbeta)
+trotterstep = lambda t, h, u0: es.splittings.classical.stepper(t, h, u0, eVu, eLu, trotteralpha, trotterbeta)
+strangstep = lambda t, h, u0: es.splittings.classical.stepper(t, h, u0, eVu, eLu, strangalpha, strangbeta)
+blanesmoanstep = lambda t, h, u0: es.splittings.classical.stepper(t, h, u0, eVu, eLu, blanesmoanalpha, blanesmoanbeta)
 
 
 observables = {'energy': lambda u: es.fourier.observable(lambda psi: -es.fourier.diffop(0, 2, psi, xr) + V*psi, u, xr), 
@@ -53,7 +53,7 @@ E0 = obsvalues_trotter['energy'][0]
 plt.semilogy(timegrid, np.abs(obsvalues_trotter['energy']-E0))
 plt.semilogy(timegrid, np.abs(obsvalues_strang['energy']-E0))
 plt.semilogy(timegrid, np.abs(obsvalues_blanesmoan['energy']-E0))
-plt.legend({'Trotter','Strang','Blanes-Moan'})
+plt.legend(['Trotter','Strang','Blanes-Moan'])
 plt.ylabel('change in energy')
 plt.xlabel('time')
 plt.show()

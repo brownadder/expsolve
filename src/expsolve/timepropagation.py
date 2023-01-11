@@ -1,5 +1,6 @@
 import numpy as np
 
+
 # observables should be a dictionary
 def evolve(u0, timegrid, stepper, observables={}, storeintermediate=False):
     obsvalues = {}
@@ -9,17 +10,18 @@ def evolve(u0, timegrid, stepper, observables={}, storeintermediate=False):
     uintermediate = []
 
     u = u0
-    postprocess(u, uintermediate, storeintermediate, obsvalues, observables)
+    postprocess(0, u, uintermediate, storeintermediate, obsvalues, observables)
 
     for n in range(len(timegrid)-1):
         h = timegrid[n+1]-timegrid[n]
-        u = stepper(h, u)
-        postprocess(u, uintermediate, storeintermediate, obsvalues, observables)
+        t = timegrid[n]
+        u = stepper(t, h, u)
+        postprocess(t, u, uintermediate, storeintermediate, obsvalues, observables)
 
     return u, obsvalues, uintermediate
 
 
-def postprocess(u, uintermediate, storeintermediate, obsvalues, observables):
+def postprocess(t, u, uintermediate, storeintermediate, obsvalues, observables):
 
     if storeintermediate:
         uintermediate.append(u)
@@ -30,4 +32,4 @@ def postprocess(u, uintermediate, storeintermediate, obsvalues, observables):
 
 
 def timegrid(T, N):
-    return np.linspace(0, T, N+1)
+    return np.linspace(0, T, int(N)+1)
