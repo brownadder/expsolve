@@ -36,16 +36,17 @@ def symmetric(a, b):
     ny = len(y)
     assert (nx == ny) or (nx == ny + 1)
 
-    xmid = 1.-2.*sum(x)
-    ymid = 0.5-sum(y)
-    X = x + [xmid] + x[::-1]
-    Y = y + [ymid, ymid] + y[::-1]
-    
     if nx == ny:
-        alpha = Y
-        beta = X + [0]
+        xmid = 0.5-sum(x)
+        ymid = 1.-2.*sum(y)
+    
+        alpha = x + [xmid, xmid] + x[::-1]
+        beta = y + [ymid] + y[::-1] + [0]
     else:
-        alpha = X
-        beta = Y + [0]
+        xmid = 1.-2.*sum(x)
+        ymid = 0.5-sum(y)
+
+        alpha = x + [xmid] + x[::-1]
+        beta = y + [ymid, ymid] + y[::-1] + [0]
 
     return alpha, beta
