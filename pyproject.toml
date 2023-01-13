@@ -1,6 +1,6 @@
 [project]
 name = "expsolve"
-version = "0.0.6"
+version = "0.0.7"
 description = "Exponential solvers for PDEs of quantum mechanics"
 readme = "README.md"
 license = { text = "MIT" }
