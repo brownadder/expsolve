@@ -1,12 +1,12 @@
 # Copyright (c) 2019-2022 Pranav Singh
 # Use of this source code is governed by the MIT license that can be found in the LICENSE file.
-
+import torch
 
 def stepper(t, h, u0, flowAu, flowBu, alpha, beta):
     u = u0
     tauA = t   # in time-ordered flows
     tauB = t   # time either moves with A or with B
-    assert(len(alpha) == len(beta))
+    assert len(alpha) == len(beta)
     for k in range(len(alpha)):
         if abs(alpha[k]) > 1e-14:
             u = flowAu(t, tauB, h, alpha[k], u)   
@@ -23,7 +23,7 @@ def consistent(a, b):
     y = list(b)
     alpha = x+[1.-sum(x)]
     beta = y+[1.-sum(y)]
-    return alpha, beta
+    return torch.tensor(alpha, dtype=torch.float64), torch.tensor(beta, dtype=torch.float64)
 
 
 # expAu should be the first action
@@ -49,4 +49,4 @@ def symmetric(a, b):
         alpha = x + [xmid] + x[::-1]
         beta = y + [ymid, ymid] + y[::-1] + [0]
 
-    return alpha, beta
+    return torch.tensor(alpha, dtype=torch.float64), torch.tensor(beta, dtype=torch.float64)
