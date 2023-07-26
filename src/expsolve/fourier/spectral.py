@@ -2,6 +2,9 @@
 # Use of this source code is governed by the MIT license that can be found in the LICENSE file.
 
 import numpy as np
+from torch.fft import fft, ifft, fftn, ifftn, fftshift, ifftshift
+from torch import meshgrid, arange, eye, zeros
+from torch import pi, sqrt, tensor, float64, real
 
 
 def cfft(f, d=-1):
@@ -11,22 +14,22 @@ def cfft(f, d=-1):
     central fft - performs fourier transform while shifting frequency to centre
     NOTE: scaled different from matlab implementation'''
     if d == -1:
-        return np.fft.fftshift(np.fft.fftn(f))
+        return fftshift(fftn(f))
     else:
-        return np.fft.fftshift(np.fft.fft(f, axis=d), d)
+        return fftshift(fft(f, dim=d), d)
 
 
 def cifft(f, d=-1):
     '''inverse of cfft'''
     if d == -1:
-        return np.fft.ifftn(np.fft.ifftshift(f))
+        return ifftn(ifftshift(f))
     else:
-        return np.fft.ifft(np.fft.ifftshift(f, d), axis=d)
+        return ifft(ifftshift(f, d), dim=d)
 
 
 def cfftmatrix(n):
-    id = np.eye(n)
-    F = np.fft.fftshift(np.fft.fft(id, axis=0), axes=0) / np.sqrt(n)
+    id = eye(n, dtype=float64)
+    F = fftshift(fft(id, axis=0), dim=0) / sqrt(tensor(n))
     return F
 
 
@@ -35,8 +38,8 @@ def fouriersymbol(n, xrange):
     xrange    2 length array of reals
     creates the fourier symbol in a single dimension'''
     lf = 2 / (xrange[1] - xrange[0])
-    o = np.mod(n, 2)
-    c = 1j * np.pi * lf * np.arange(-(n - o) / 2, (n - o) / 2 + o).T
+    o = tensor(np.mod(n, 2))
+    c = 1j * pi * lf * arange(-(n - o) / 2, (n - o) / 2 + o, dtype=float64)
     return c
 
 
@@ -54,13 +57,13 @@ def fouriersymbolfull(n, xrange, storefn=lambda x: x):
         # best to specify n for each dim, otherwise max(n) is used
         n = n + [max(n) for i in range(dims-len(n))]  
     clist = [storefn(fouriersymbol(n[d], xrange[d])) for d in range(dims)]
-    return np.meshgrid(*clist)
+    return meshgrid(*clist, indexing='xy')
 
 
 def laplaciansymbol(n, xrange, storefn=lambda x: x):
     c = fouriersymbolfull(n, xrange, storefn)
     dims = xrange.shape[0]
-    lapsymb = np.zeros(c[0].shape)
+    lapsymb = zeros(c[0].shape, dtype=float64)
     for d in range(dims):
-        lapsymb = lapsymb + c[d]**2
+        lapsymb = lapsymb + real(c[d]**2)
     return lapsymb

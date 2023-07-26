@@ -2,17 +2,19 @@
 # Use of this source code is governed by the MIT license that can be found in the LICENSE file.
 
 import numpy as np
-from .discretize import *
-from .spectral import *
+from .discretize import dim, fixrange
+from .spectral import cfft, cifft, cfftmatrix, fouriersymbol
 
+from torch import diag, exp, real
 
 def diffmatrix(k, n, xrange):
     '''one dimensional matrix'''
-    xrange = fixrange(xrange, 1)[0]     #1D
+    xrange = fixrange(xrange, 1)[0]     # 1D
     F = cfftmatrix(n)
-    Finv = F.conj().T
     symbol = fouriersymbol(n, xrange) ** k
-    Dk = Finv.dot(np.diag(symbol).dot(F))
+    Dk = F.H @ diag(symbol) @ F
+    if np.mod(k, 2) == 0:
+        Dk = real(Dk)
     return Dk
 
 
@@ -32,7 +34,8 @@ def fourierfn(fn, u, d, xrange):
     u         ndarray of complex numbers
     d         scalar int - dimension to apply fn in
     implements fn(d/dx_d) * u'''
-    fs = fouriersymbol(u.shape[d], xrange[d])
+    shape = list(u.size())
+    fs = fouriersymbol(shape[d], xrange[d])
     return cifft(fourierproduct(fn, fs, cfft(u, d), d), d)
 
 
@@ -48,8 +51,6 @@ def diffopexp(d, k, s, u, xrange=-1):
 
 
 def laplacianopexp(lapsymb, s, u):
-    esL = np.exp(s * lapsymb)   # in practical implementation better to compute and store this once.
+    esL = exp(s * lapsymb)   # in practical implementation better to compute and store this once.
     return cifft(esL * cfft(u))
-
-
 

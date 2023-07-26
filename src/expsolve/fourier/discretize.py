@@ -3,6 +3,8 @@
 
 import numpy as np
 
+from torch import float64, complex128, is_tensor, real, meshgrid, inner, linspace
+from torch.linalg import norm
 
 def dim(u):
     '''Returns the dimensions of a discretised function u
@@ -29,7 +31,7 @@ def fixrange(xrange, dims):
         return np.array([[-1, 1] for d in range(dims)])
     else:
         if isinstance(xrange, list):
-            assert(len(xrange) == 2)
+            assert len(xrange) == 2
             return np.array([xrange for d in range(dims)])
         else:
             return xrange
@@ -43,7 +45,7 @@ def grid1d(n, xrange=[-1, 1]):
 
     output    n x 1 float'''
     offset = (xrange[1] - xrange[0]) / (2 * n)
-    return np.linspace(xrange[0] + offset, xrange[1] - offset, n)
+    return linspace(xrange[0] + offset, xrange[1] - offset, n, dtype=float64)
 
 
 def l2inner(u, v, xrange=-1):
@@ -57,7 +59,7 @@ def l2inner(u, v, xrange=-1):
     output      scalar complex'''
     xrange = fixrange(xrange, dim(u))
     s = np.prod((xrange[:, 1] - xrange[:, 0])/u.shape)
-    return s * np.inner(u.flatten().conj(), v.flatten())
+    return s * inner(u.flatten().conj(), v.flatten())
 
 
 def l2norm(u, xrange=-1):
@@ -70,7 +72,7 @@ def l2norm(u, xrange=-1):
     output      scalar real'''
     xrange = fixrange(xrange, dim(u))
     s = np.prod((xrange[:, 1] - xrange[:, 0])/u.shape)
-    return np.sqrt(s) * np.linalg.norm(u.flatten())
+    return np.sqrt(s) * norm(u.flatten())
 
 
 def grid(n, xrange):
@@ -85,7 +87,8 @@ def grid(n, xrange):
     xlist = []
     for i in range(dims):
         xlist.append(grid1d(n[i], xrange[i]))
-    x = np.meshgrid(*xlist)
+    x = meshgrid(xlist, indexing='xy')
+    x = list(x)
     for i in range(dims):
         x[i] = x[i].T
     return x
@@ -100,8 +103,8 @@ def observable(O, u, xrange=-1):
     xrange      dims x 2 ndarray in higher dimensions, or a list in 1d (default [-1,1])
     
     output      scalar real'''
-    if (isinstance(O, np.ndarray)):
-        Ou = O.dot(u)
+    if (is_tensor(O)):
+        Ou = O.type(complex128) @ u
     else:
         Ou = O(u)
-    return np.real(l2inner(u, Ou, xrange))
+    return real(l2inner(u, Ou, xrange))
