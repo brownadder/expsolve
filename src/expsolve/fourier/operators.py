@@ -34,7 +34,7 @@ def fourierfn(fn, u, d, xrange):
     u         ndarray of complex numbers
     d         scalar int - dimension to apply fn in
     implements fn(d/dx_d) * u'''
-    shape = list(u.size())
+    shape = list(u.shape)
     fs = fouriersymbol(shape[d], xrange[d])
     return cifft(fourierproduct(fn, fs, cfft(u, d), d), d)
 
