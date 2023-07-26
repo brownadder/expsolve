@@ -2,20 +2,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 import expsolve as es
 
+import torch
+from torch import exp
+
 n = 200
 L = 10
 xr = [-L, L]
 x = es.fourier.grid1d(n, xr)
 
 x0 = -2.0
-u = np.exp(-(x-x0)**2/(2*0.25))
+u = exp(-(x-x0)**2/(2*0.25)).type(torch.complex128)
 
 u = u/es.fourier.l2norm(u, xr)
 
 V = x**4 - 10*x**2
 
 eLu = lambda t, tauV, h, c, u: es.fourier.diffopexp(0, 2, 1j*h*c, u, xr)
-eVu = lambda t, tauL, h, c, u: np.exp(-1j*h*c*V)*u
+eVu = lambda t, tauL, h, c, u: exp(-1j*h*c*V)*u
 
 trotteralpha, trotterbeta = es.splittings.classical.consistent([],[])
 strangalpha, strangbeta = es.splittings.classical.symmetric([],[])
