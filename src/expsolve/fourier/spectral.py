@@ -5,6 +5,7 @@ import numpy as np
 from torch.fft import fft, ifft, fftn, ifftn, fftshift, ifftshift
 from torch import meshgrid, arange, eye, zeros
 from torch import pi, sqrt, tensor, float64, real
+import torch
 
 
 def cfft(f, d=-1):
@@ -33,17 +34,17 @@ def cfftmatrix(n):
     return F
 
 
-def fouriersymbol(n, xrange):
+def fouriersymbol(n, xrange, device=torch.device('cpu')):
     '''n         scalar int
     xrange    2 length array of reals
     creates the fourier symbol in a single dimension'''
     lf = 2 / (xrange[1] - xrange[0])
     o = tensor(np.mod(n, 2))
-    c = 1j * pi * lf * arange(-(n - o) / 2, (n - o) / 2 + o, dtype=float64)
+    c = 1j * pi * lf * arange(-(n - o) / 2, (n - o) / 2 + o, dtype=float64).to(device)
     return c
 
 
-def fouriersymbolfull(n, xrange, storefn=lambda x: x):
+def fouriersymbolfull(n, xrange, device=torch.device('cpu')):
     '''When a full grid of the fourier symbol is required - this is helpful if
     one is using cfftn (or cfft(u,1:D)), i.e. FFT is first run in all
     directions and then there is pointwise multiplication. This symbol can
@@ -56,12 +57,12 @@ def fouriersymbolfull(n, xrange, storefn=lambda x: x):
     if len(n) < dims:
         # best to specify n for each dim, otherwise max(n) is used
         n = n + [max(n) for i in range(dims-len(n))]  
-    clist = [storefn(fouriersymbol(n[d], xrange[d])) for d in range(dims)]
+    clist = [fouriersymbol(n[d], xrange[d]).to(device) for d in range(dims)]
     return meshgrid(*clist, indexing='xy')
 
 
-def laplaciansymbol(n, xrange, storefn=lambda x: x):
-    c = fouriersymbolfull(n, xrange, storefn)
+def laplaciansymbol(n, xrange, device='cpu'):
+    c = fouriersymbolfull(n, xrange, device)
     dims = xrange.shape[0]
     lapsymb = zeros(c[0].shape, dtype=float64)
     for d in range(dims):

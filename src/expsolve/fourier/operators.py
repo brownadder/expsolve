@@ -7,6 +7,7 @@ from .spectral import cfft, cifft, cfftmatrix, fouriersymbol
 
 from torch import diag, exp, real
 
+
 def diffmatrix(k, n, xrange):
     '''one dimensional matrix'''
     xrange = fixrange(xrange, 1)[0]     # 1D
@@ -35,7 +36,8 @@ def fourierfn(fn, u, d, xrange):
     d         scalar int - dimension to apply fn in
     implements fn(d/dx_d) * u'''
     shape = list(u.shape)
-    fs = fouriersymbol(shape[d], xrange[d])
+    device = u.device
+    fs = fouriersymbol(shape[d], xrange[d], device)
     return cifft(fourierproduct(fn, fs, cfft(u, d), d), d)
 
 
@@ -47,7 +49,7 @@ def diffop(d, k, u, xrange=-1):
 def diffopexp(d, k, s, u, xrange=-1):
     '''This evaluates exp(s d^k/dx_d^k) (u) using spectral/fourier'''
     xrange = fixrange(xrange, dim(u))
-    return fourierfn(lambda x: np.exp(s * x**k), u, d, xrange)
+    return fourierfn(lambda x: exp(s * x**k), u, d, xrange)
 
 
 def laplacianopexp(lapsymb, s, u):
