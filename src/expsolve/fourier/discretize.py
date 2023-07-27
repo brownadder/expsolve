@@ -3,8 +3,14 @@
 
 import numpy as np
 
-from torch import float64, complex128, is_tensor, real, meshgrid, inner, linspace
+from torch import float64, complex128, is_tensor, meshgrid, inner, linspace, real
 from torch.linalg import norm
+
+
+# complex
+def complex(u):
+    return u.type(complex128)
+
 
 def dim(u):
     '''Returns the dimensions of a discretised function u
@@ -75,6 +81,10 @@ def l2norm(u, xrange=-1):
     return np.sqrt(s) * norm(u.flatten())
 
 
+def normalize(u, xrange=-1):
+    return complex(u/l2norm(u, xrange))
+
+
 def grid(n, xrange):
     '''Create an n-dimensional grid
 
@@ -94,17 +104,17 @@ def grid(n, xrange):
     return x
 
 
-def observable(O, u, xrange=-1):
+def observable(obs, u, xrange=-1):
     '''Computes the expected value of the observable O in state u, i.e. <u, O u>
     
-    O           Hermitian operator or matrix
+    obs         Hermitian operator or matrix
     u           complex-valued discretised functions discretised
                 on domain described by xrange
     xrange      dims x 2 ndarray in higher dimensions, or a list in 1d (default [-1,1])
     
     output      scalar real'''
-    if (is_tensor(O)):
-        Ou = O.type(complex128) @ u
+    if (is_tensor(obs)):
+        Ou = complex(obs) @ complex(u)
     else:
-        Ou = O(u)
-    return real(l2inner(u, Ou, xrange))
+        Ou = obs(u)
+    return real(l2inner(complex(u), Ou, xrange))

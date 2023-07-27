@@ -5,52 +5,52 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import expsolve.fourier as fe
-from torch import matrix_exp, pi, real, sqrt, abs, sin, exp, complex128
+import expsolve.fourier as ex
+from torch import matrix_exp, pi, real, sqrt, abs, sin, exp
 from torch.linalg import norm
 
 # Create a 1D grid
 xrange = [0, 2*pi]
-x = fe.grid1d(100, xrange)     #
+x = ex.grid1d(100, xrange)     #
 
-# Differentiating a function using diffop 
+# Differrentiating a function using diffop 
 s = sin(x)
-ds = fe.diffop(0,1,s,xrange)   # 1st derivative using diffop
-d2s = fe.diffop(0,2,s,xrange)  # 2st derivative using diffop
+ds = ex.diffop(0, 1, s, xrange)   # 1st derivative using diffop
+d2s = ex.diffop(0, 2, s, xrange)  # 2st derivative using diffop
 
 plt.plot(x, s)
 plt.plot(x, real(ds))
 plt.plot(x, real(d2s))
 plt.show()
 
-# Differentiating using a (full/dense) differentiation matrix (expensive)
-D2 = fe.diffmatrix(2, 100, xrange)
+# Differrentiating using a (full/dense) differrentiation matrix (expensive)
+D2 = ex.diffmatrix(2, 100, xrange)
 plt.plot(D2 @ s)
 plt.show()
 
-# Three different ways to check error in differentiation
+# Three differrent ways to check error in differrentiation
 print(norm(D2 @ s - d2s))
-print(fe.l2norm(D2 @ s - d2s, xrange))
-print(sqrt(real(fe.l2inner(D2 @ s - d2s, D2 @ s - d2s, xrange))))
+print(ex.l2norm(D2 @ s - d2s, xrange))
+print(sqrt(real(ex.l2inner(D2 @ s - d2s, D2 @ s - d2s, xrange))))
 
 # The Schrodinger equation iu' = Hu, H = -L + V. Or u' = iLu -iVu.
 n = 200 
 xr = [-10, 10]
-x = fe.grid1d(n, xr)                # discretise [-10,10] with 200 grid points
+x = ex.grid1d(n, xr)                # discretise [-10,10] with 200 grid points
 
 x0 = -2.0
-u = exp(-(x-x0)**2/(2*0.25)).type(complex128)     # initial condition: Gaussian
+u = ex.normalize( exp(-(x-x0)**2/(2*0.25)), xr)         # initial condition: Gaussian
 V = x**4 - 10*x**2                                      # potential: double well 
 
 # Splitting and composition
-eLu = lambda h, u: fe.diffopexp(0, 2, 1j*h, u, xr)  # flow under the Laplacian (1d): iL
-eVu = lambda h, u: exp(-1j*h*V)*u                # flow under the potential: -iV
-strang = lambda h, u: eVu(h/2, eLu(h, eVu(h/2, u))) # Strang splitting of the flow under iL-iV
+eLu = lambda h, u: ex.diffopexp(0, 2, 1j*h, u, xr)      # flow under the Laplacian (1d): iL
+eVu = lambda h, u: exp(-1j*h*V)*u                       # flow under the potential: -iV
+strang = lambda h, u: eVu(h/2, eLu(h, eVu(h/2, u)))     # Strang splitting of the flow under iL-iV
 
 # Exact flow
-D2 = fe.diffmatrix(2, n, xr)
+D2 = ex.diffmatrix(2, n, xr)
 H = -D2 + np.diag(V)                                    # explicitly created Hamiltonian matrix
-exact = lambda h, u: matrix_exp(-1j*h*H) @ u           # exact solution by brute force via matrix_exp
+exact = lambda h, u: matrix_exp(-1j*h*H) @ u            # exact solution by brute force via matrix_exp
 
 # Error in splitting for large time step
 T = 0.5                                             # solve over [0,T]
@@ -61,7 +61,7 @@ plt.plot(x, abs(uref))
 plt.plot(x, abs(ustrang))
 plt.show()
 
-print(fe.l2norm(uref-ustrang, xr))
+print(ex.l2norm(uref-ustrang, xr))
 
 # Splitting with small timestep
 def runstrang(T, N, u0):
@@ -72,20 +72,20 @@ def runstrang(T, N, u0):
     return u
 
 
-plt.plot(abs(runstrang(T,1000,u)))   # 1000 steps of Strang splitting
+plt.plot(abs(runstrang(T, 1000, u)))   # 1000 steps of Strang splitting
 plt.show()
 
 # Check the rate of convergence of Strang splitting
-Nlist = 2**np.arange(2,9)
+Nlist = 2**np.arange(2, 9)
 hlist = T/Nlist
-err = [fe.l2norm(uref-runstrang(T,N,u)) for N in Nlist]
+err = [ex.l2norm(uref-runstrang(T, N, u)) for N in Nlist]
 
 print(err)
 print(Nlist)
 print(hlist)
 
 plt.loglog(hlist, err)
-plt.loglog(hlist, hlist**2) # the error is expected to be O(h^2)
+plt.loglog(hlist, hlist**2)     # the error is expected to be O(h^2)
 
 plt.xlabel('time step')
 plt.ylabel('L2 error')
