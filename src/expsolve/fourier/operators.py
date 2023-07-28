@@ -19,6 +19,7 @@ def diffmatrix(k, n, xrange):
     return Dk
 
 
+# batch revisit
 def fourierproduct(fn, c, u, d):
     '''Fourier symbol c is along the d-th dimension - apply fn(c) along this direction'''
     fc = fn(c)  # this is 1-D:                           n_d
@@ -30,6 +31,7 @@ def fourierproduct(fn, c, u, d):
     return fc * u
 
 
+# batch revisit
 def fourierfn(fn, u, d, xrange):
     '''fn        function
     u         ndarray of complex numbers
@@ -41,17 +43,20 @@ def fourierfn(fn, u, d, xrange):
     return cifft(fourierproduct(fn, fs, cfft(u, d), d), d)
 
 
+# batch revisit
 def diffop(d, k, u, xrange=-1):
     xrange = fixrange(xrange, dim(u))
     return fourierfn(lambda x: x ** k, u, d, xrange)
 
 
+# batch revisit
 def diffopexp(d, k, s, u, xrange=-1):
     '''This evaluates exp(s d^k/dx_d^k) (u) using spectral/fourier'''
     xrange = fixrange(xrange, dim(u))
     return fourierfn(lambda x: exp(s * x**k), u, d, xrange)
 
 
+# batch revisit
 def laplacianopexp(lapsymb, s, u):
     esL = exp(s * lapsymb)   # in practical implementation better to compute and store this once.
     return cifft(esL * cfft(u))

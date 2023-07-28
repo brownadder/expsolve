@@ -12,6 +12,7 @@ def complex(u):
     return u.type(complex128)
 
 
+# batch revisit
 def dim(u):
     '''Returns the dimensions of a discretised function u
 
@@ -53,7 +54,7 @@ def grid1d(n, xrange=[-1, 1]):
     offset = (xrange[1] - xrange[0]) / (2 * n)
     return linspace(xrange[0] + offset, xrange[1] - offset, n, dtype=float64)
 
-
+# batch revisit
 def l2inner(u, v, xrange=-1):
     '''Computes the complex L2 inner product <u, v>
     which is conjugate linear in u and linear in v
@@ -67,7 +68,7 @@ def l2inner(u, v, xrange=-1):
     s = np.prod((xrange[:, 1] - xrange[:, 0])/u.shape)
     return s * inner(u.flatten().conj(), v.flatten())
 
-
+# batch revisit
 def l2norm(u, xrange=-1):
     '''Computes the L2 norm ||u||
     
@@ -81,6 +82,7 @@ def l2norm(u, xrange=-1):
     return np.sqrt(s) * norm(u.flatten())
 
 
+# batch revisit
 def normalize(u, xrange=-1):
     return complex(u/l2norm(u, xrange))
 
@@ -104,6 +106,7 @@ def grid(n, xrange):
     return x
 
 
+# batch revisit
 def observable(obs, u, xrange=-1):
     '''Computes the expected value of the observable O in state u, i.e. <u, O u>
     

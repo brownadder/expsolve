@@ -8,6 +8,7 @@ from torch import pi, sqrt, tensor, float64, real
 import torch
 
 
+# batch revisit
 def cfft(f, d=-1):
     '''f         complex-valued data
     d         dimension in which to do fft. default (d = -1) 
@@ -20,6 +21,7 @@ def cfft(f, d=-1):
         return fftshift(fft(f, dim=d), d)
 
 
+# batch revisit
 def cifft(f, d=-1):
     '''inverse of cfft'''
     if d == -1:
