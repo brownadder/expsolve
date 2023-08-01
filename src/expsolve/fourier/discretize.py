@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from torch import float64, complex128, is_tensor, meshgrid, inner, linspace, real
+from torch import float64, complex128, is_tensor, meshgrid, inner, linspace, real, sum
 from torch.linalg import norm
 
 
@@ -12,7 +12,6 @@ def complex(u):
     return u.type(complex128)
 
 
-# batch revisit
 def dim(u):
     '''Returns the dimensions of a discretised function u
 
@@ -20,7 +19,11 @@ def dim(u):
 
     output        scalar int
     '''
-    return len(list(u.shape))
+    return len(list(u.shape))-1
+
+
+def alldims(u):
+    return tuple(range(1, dim(u)+1))
 
 
 def fixrange(xrange, dims):
@@ -52,9 +55,9 @@ def grid1d(n, xrange=[-1, 1]):
 
     output    n x 1 float'''
     offset = (xrange[1] - xrange[0]) / (2 * n)
-    return linspace(xrange[0] + offset, xrange[1] - offset, n, dtype=float64)
+    return linspace(xrange[0] + offset, xrange[1] - offset, n, dtype=float64).unsqueeze(dim=0)
 
-# batch revisit
+
 def l2inner(u, v, xrange=-1):
     '''Computes the complex L2 inner product <u, v>
     which is conjugate linear in u and linear in v
@@ -65,10 +68,10 @@ def l2inner(u, v, xrange=-1):
     
     output      scalar complex'''
     xrange = fixrange(xrange, dim(u))
-    s = np.prod((xrange[:, 1] - xrange[:, 0])/u.shape)
-    return s * inner(u.flatten().conj(), v.flatten())
+    s = np.prod((xrange[:, 1] - xrange[:, 0])/u.shape[1:])
+    return s * sum(u.flatten(start_dim=1).conj() * v.flatten(start_dim=1), dim=1)
 
-# batch revisit
+
 def l2norm(u, xrange=-1):
     '''Computes the L2 norm ||u||
     
@@ -78,16 +81,17 @@ def l2norm(u, xrange=-1):
 
     output      scalar real'''
     xrange = fixrange(xrange, dim(u))
-    s = np.prod((xrange[:, 1] - xrange[:, 0])/u.shape)
-    return np.sqrt(s) * norm(u.flatten())
+    s = np.prod((xrange[:, 1] - xrange[:, 0])/u.shape[1:])
+    return np.sqrt(s) * norm(u.flatten(start_dim=1), dim=1)
 
 
-# batch revisit
 def normalize(u, xrange=-1):
-    return complex(u/l2norm(u, xrange))
+    nrm = l2norm(u, xrange)
+    nrm = nrm.view(u.shape[0], *([1] * dim(u)))
+    return complex(u/nrm)
 
 
-def grid(n, xrange):
+def grid(n, xrange=-1):
     '''Create an n-dimensional grid
 
     n         dim length array of int
@@ -98,15 +102,15 @@ def grid(n, xrange):
     xrange = fixrange(xrange, dims)
     xlist = []
     for i in range(dims):
-        xlist.append(grid1d(n[i], xrange[i]))
+        xlist.append(grid1d(n[i], xrange[i]).flatten())
     x = meshgrid(xlist, indexing='xy')
     x = list(x)
     for i in range(dims):
-        x[i] = x[i].T
+        x[i] = (x[i].T).unsqueeze(dim=0)
     return x
 
 
-# batch revisit
+# batch revisit - later
 def observable(obs, u, xrange=-1):
     '''Computes the expected value of the observable O in state u, i.e. <u, O u>
     

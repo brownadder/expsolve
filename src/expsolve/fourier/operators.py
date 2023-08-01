@@ -8,6 +8,7 @@ from .spectral import cfft, cifft, cfftmatrix, fouriersymbol
 from torch import diag, exp, real
 
 
+# batch revisit
 def diffmatrix(k, n, xrange):
     '''one dimensional matrix'''
     xrange = fixrange(xrange, 1)[0]     # 1D
@@ -21,12 +22,12 @@ def diffmatrix(k, n, xrange):
 
 # batch revisit
 def fourierproduct(fn, c, u, d):
-    '''Fourier symbol c is along the d-th dimension - apply fn(c) along this direction'''
+    '''Fourier symbol c is along the (d+1)-th dimension - apply fn(c) along this direction'''
     fc = fn(c)  # this is 1-D:                           n_d
     dims = dim(u)  # this may be N-D:     n_1 x n_2 x ... x n_d x .... x n_N
     if dims > 1:
         nd = len(fc)
-        shp = [nd if di == d else 1 for di in range(dims)]
+        shp = [nd if di == d+1 else 1 for di in range(dims+1)]
         fc = fc.reshape(shp)  # extend symbol to shape 1 x 1 x ... 1 x n_d x 1 x ... 1
     return fc * u
 
@@ -39,7 +40,7 @@ def fourierfn(fn, u, d, xrange):
     implements fn(d/dx_d) * u'''
     shape = list(u.shape)
     device = u.device
-    fs = fouriersymbol(shape[d], xrange[d], device)
+    fs = fouriersymbol(shape[d+1], xrange[d], device)
     return cifft(fourierproduct(fn, fs, cfft(u, d), d), d)
 
 
