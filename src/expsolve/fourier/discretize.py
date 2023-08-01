@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from torch import float64, complex128, is_tensor, meshgrid, inner, linspace, real, sum
+from torch import float64, complex128, meshgrid, linspace, sum
 from torch.linalg import norm
 
 
@@ -69,7 +69,7 @@ def l2inner(u, v, xrange=-1):
     output      scalar complex'''
     xrange = fixrange(xrange, dim(u))
     s = np.prod((xrange[:, 1] - xrange[:, 0])/u.shape[1:])
-    return s * sum(u.flatten(start_dim=1).conj() * v.flatten(start_dim=1), dim=1)
+    return s * sum(complex(u).flatten(start_dim=1).conj() * complex(v).flatten(start_dim=1), dim=1)
 
 
 def l2norm(u, xrange=-1):
@@ -110,18 +110,3 @@ def grid(n, xrange=-1):
     return x
 
 
-# batch revisit - later
-def observable(obs, u, xrange=-1):
-    '''Computes the expected value of the observable O in state u, i.e. <u, O u>
-    
-    obs         Hermitian operator or matrix
-    u           complex-valued discretised functions discretised
-                on domain described by xrange
-    xrange      dims x 2 ndarray in higher dimensions, or a list in 1d (default [-1,1])
-    
-    output      scalar real'''
-    if (is_tensor(obs)):
-        Ou = complex(obs) @ complex(u)
-    else:
-        Ou = obs(u)
-    return real(l2inner(complex(u), Ou, xrange))

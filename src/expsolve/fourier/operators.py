@@ -2,13 +2,27 @@
 # Use of this source code is governed by the MIT license that can be found in the LICENSE file.
 
 import numpy as np
-from .discretize import dim, fixrange
+from .discretize import dim, fixrange, l2inner, complex
 from .spectral import cfft, cifft, cfftmatrix, fouriersymbol
 
-from torch import diag, exp, real
+from torch import exp, real, complex128, is_tensor
+import torch
 
 
-# batch revisit
+def diag(v):
+    return torch.diag(v.flatten())
+
+
+
+# batch revisit : broadcast in both directions: if either v or A is longer in dim 0
+def mv(A, v):
+    if A.dtype == complex128 or v.dtype == complex128:
+        return (complex(A) @ complex(v).flatten()).unsqueeze(dim=0)
+    else:
+        return (A @ v.flatten()).unsqueeze(dim=0)
+
+
+
 def diffmatrix(k, n, xrange):
     '''one dimensional matrix'''
     xrange = fixrange(xrange, 1)[0]     # 1D
@@ -18,6 +32,16 @@ def diffmatrix(k, n, xrange):
     if np.mod(k, 2) == 0:
         Dk = real(Dk)
     return Dk
+
+
+
+def plot(plt, x, y, *args, **kwargs):
+    plt.plot(x.detach().cpu().flatten(), y.detach().cpu().flatten(), *args, **kwargs)
+
+
+def semilogy(plt, x, y, *args, **kwargs):
+    plt.semilogy(x.detach().cpu().flatten(), y.detach().cpu().flatten(), *args, **kwargs)
+
 
 
 # batch revisit
@@ -62,3 +86,20 @@ def laplacianopexp(lapsymb, s, u):
     esL = exp(s * lapsymb)   # in practical implementation better to compute and store this once.
     return cifft(esL * cfft(u))
 
+
+
+# batch revisit - later - broadcast like mv
+def observable(obs, u, xrange=-1):
+    '''Computes the expected value of the observable O in state u, i.e. <u, O u>
+    
+    obs         Hermitian operator or matrix
+    u           complex-valued discretised functions discretised
+                on domain described by xrange
+    xrange      dims x 2 ndarray in higher dimensions, or a list in 1d (default [-1,1])
+    
+    output      scalar real'''
+    if (is_tensor(obs)):
+        Ou = mv(obs, u)
+    else:
+        Ou = obs(u)
+    return real(l2inner(u, Ou, xrange))

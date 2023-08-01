@@ -35,7 +35,7 @@ def cifft(f, d=-1):
 def cfftmatrix(n):
     id = eye(n, dtype=float64)
     F = fftshift(fft(id, axis=0), dim=0) / sqrt(tensor(n))
-    return F.unsqueeze(dim=0)
+    return F
 
 
 # batch revisit
