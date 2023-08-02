@@ -38,18 +38,29 @@ def diffmatrix(k, n, xrange):
 
 
 def plot(plt, x, y, *args, **kwargs):
-    plt.plot(x.detach().cpu().flatten(), y.detach().cpu().flatten(), *args, **kwargs)
+    nb = y.shape[0]
+    for i in range(nb):
+        plt.plot(x.detach().cpu().flatten(), y[i].detach().cpu().flatten(), *args, **kwargs)
+
+
+def plotshaded(plt, x, y, *args, **kwargs):
+    mean_data = torch.mean(y, axis=0).detach().cpu()
+    variance_data = torch.std(y, axis=0).detach().cpu()
+    plt.plot(x.detach().cpu().flatten(), mean_data, *args, **kwargs)
+    plt.fill_between(x.detach().cpu().flatten(), mean_data - variance_data, mean_data + variance_data, alpha=0.2, *args, **kwargs)
+    plt.show()
 
 
 def semilogy(plt, x, y, *args, **kwargs):
-    plt.semilogy(x.detach().cpu().flatten(), y.detach().cpu().flatten(), *args, **kwargs)
+    nb = y.shape[0]
+    for i in range(nb):
+        plt.semilogy(x.detach().cpu().flatten(), y[i].detach().cpu().flatten(), *args, **kwargs)
 
 
 def imshow(plt, xrange, y, *args, **kwargs):
     assert dim(y) == 2
     assert y.shape[0] == 1
     region = list(fixrange(xrange, 2).flatten())
-    
     plt.imshow(y.reshape(y.shape[1:]), extent=region)
 
 
