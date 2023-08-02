@@ -17,7 +17,7 @@ def cfft(f, d=-1):
     central fft - performs fourier transform while shifting frequency to centre
     NOTE: scaled different from matlab implementation'''
     if d == -1:
-        return fftshift(fftn(f, dim=alldims(f)))
+        return fftshift(fftn(f, dim=alldims(f)), dim=alldims(f))
     else:
         return fftshift(fft(f, dim=d+1), d+1)
 
@@ -26,7 +26,7 @@ def cfft(f, d=-1):
 def cifft(f, d=-1):
     '''inverse of cfft'''
     if d == -1:
-        return ifftn(ifftshift(f, dim=alldims(f)))
+        return ifftn(ifftshift(f, dim=alldims(f)), dim=alldims(f))
     else:
         return ifft(ifftshift(f, d+1), dim=d+1)
 
@@ -46,7 +46,7 @@ def fouriersymbol(n, xrange, device=torch.device('cpu')):
     lf = 2 / (xrange[1] - xrange[0])
     o = tensor(np.mod(n, 2))
     c = 1j * pi * lf * arange(-(n - o) / 2, (n - o) / 2 + o, dtype=float64).to(device)
-    return c.unsqueeze(dim=0)
+    return c
 
 
 # batch revisit
@@ -63,7 +63,7 @@ def fouriersymbolfull(n, xrange, device=torch.device('cpu')):
     if len(n) < dims:
         # best to specify n for each dim, otherwise max(n) is used
         n = n + [max(n) for i in range(dims-len(n))]  
-    clist = [fouriersymbol(n[d], xrange[d]).flatten().to(device) for d in range(dims)]
+    clist = [fouriersymbol(n[d], xrange[d]).to(device) for d in range(dims)]
     cgrid = meshgrid(*clist, indexing='xy')
     for i in range(dims):
         cgrid[i] = cgrid[i].unsqueeze(dim=0)

@@ -43,18 +43,26 @@ def semilogy(plt, x, y, *args, **kwargs):
     plt.semilogy(x.detach().cpu().flatten(), y.detach().cpu().flatten(), *args, **kwargs)
 
 
+def imshow(plt, xrange, y, *args, **kwargs):
+    assert dim(y) == 2
+    assert y.shape[0] == 1
+    region = list(fixrange(xrange, 2).flatten())
+    
+    plt.imshow(y.reshape(y.shape[1:]), extent=region)
+
 
 # batch revisit
 def fourierproduct(fn, c, u, d):
     '''Fourier symbol c is along the (d+1)-th dimension - apply fn(c) along this direction'''
     fc = fn(c)  # this is 1-D:                           n_d
-    dims = dim(u)  # this may be N-D:     n_1 x n_2 x ... x n_d x .... x n_N
-    if dims > 1:
-        nd = len(fc)
-        shp = [nd if di == d+1 else 1 for di in range(dims+1)]
-        fc = fc.reshape(shp)  # extend symbol to shape 1 x 1 x ... 1 x n_d x 1 x ... 1
+    dims = dim(u)  # this may be N-D:     n_b x n_1 x n_2 x ... x n_d x .... x n_N
+    nd = len(fc)
+    broadcastshape = [nd if di == d+1 else 1 for di in range(dims+1)]
+    
+    fc = fc.reshape(broadcastshape)        # extend symbol to shape 1 x 1 x ... 1 x n_d x 1 x ... 1
     return fc * u
 
+    
 
 # batch revisit
 def fourierfn(fn, u, d, xrange):
