@@ -25,13 +25,13 @@ plt.show()
 
 # Differrentiating using a (full/dense) differrentiation matrix (expensive)
 D2 = ex.diffmatrix(2, 100, xrange)
-ex.plot(plt, x, ex.mv(D2, s))
+ex.plot(plt, x, ex.matmul(D2, s))
 plt.show()
 
 # Three differrent ways to check error in differrentiation
-print(norm(ex.mv(D2, s) - d2s))
-print(ex.l2norm(ex.mv(D2, s) - d2s, xrange))
-print(sqrt(real(ex.l2inner(ex.mv(D2, s) - d2s, ex.mv(D2, s) - d2s, xrange))))
+print(norm(ex.matmul(D2, s) - d2s))
+print(ex.l2norm(ex.matmul(D2, s) - d2s, xrange))
+print(sqrt(real(ex.l2inner(ex.matmul(D2, s) - d2s, ex.matmul(D2, s) - d2s, xrange))))
 
 # The Schrodinger equation iu' = Hu, H = -L + V. Or u' = iLu -iVu.
 n = 200 
@@ -50,7 +50,7 @@ strang = lambda h, u: eVu(h/2, eLu(h, eVu(h/2, u)))     # Strang splitting of th
 # Exact flow
 D2 = ex.diffmatrix(2, n, xr)
 H = -D2 + ex.diag(V)                                    # explicitly created Hamiltonian matrix
-exact = lambda h, u: ex.mv(matrix_exp(-1j*h*H), u)      # exact solution by brute force via matrix_exp
+exact = lambda h, u: ex.matmul(matrix_exp(-1j*h*H), u)      # exact solution by brute force via matrix_exp
 
 # Error in splitting for large time step
 T = 0.5                                             # solve over [0,T]
