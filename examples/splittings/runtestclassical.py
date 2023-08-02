@@ -52,11 +52,11 @@ obsvalues_blanesmoan = blanesmoanevolve[1]
 
 plt.figure()
 
-E0 = obsvalues_trotter['energy'][0]
+E0 = obsvalues_trotter['energy'][0][0]
 
-plt.semilogy(timegrid, np.abs(obsvalues_trotter['energy']-E0))
-plt.semilogy(timegrid, np.abs(obsvalues_strang['energy']-E0))
-plt.semilogy(timegrid, np.abs(obsvalues_blanesmoan['energy']-E0))
+plt.semilogy(timegrid, np.abs(obsvalues_trotter['energy'][0]-E0))
+plt.semilogy(timegrid, np.abs(obsvalues_strang['energy'][0]-E0))
+plt.semilogy(timegrid, np.abs(obsvalues_blanesmoan['energy'][0]-E0))
 plt.legend(['Trotter','Strang','Blanes-Moan'])
 plt.ylabel('change in energy')
 plt.xlabel('time')

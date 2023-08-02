@@ -15,13 +15,15 @@ def diag(v):
 
 
 # batch revisit : broadcast in both directions: if either v or A is longer in dim 0
-def mv(A, v):
+def matmul(A, v):
     shp = v.shape
+    u = v.reshape([shp[0], -1]).mT
+
     # nb = shp[0]     # number of batches
     if A.dtype == complex128 or v.dtype == complex128:
-        return (complex(A) @ complex(v).flatten()).reshape(shp)
+        return torch.matmul(complex(A), complex(u)).mT.reshape(shp)
     else:
-        return (A @ v.flatten()).reshape(shp)
+        return torch.matmul(A, u).mT.reshape(shp)
 
 
 
@@ -36,27 +38,40 @@ def diffmatrix(k, n, xrange):
     return Dk
 
 
+def _preprocess1D(x, y=None):
+    X = x
+    if y is None:
+        y = x
+        n = x.shape[1]
+        X = torch.tensor(range(1, n+1))
+    X = X.detach().cpu().flatten()
+    y = y.detach().cpu()
+    return X, y
 
-def plot(plt, x, y, *args, **kwargs):
+
+def plot(plt, x, y=None, *args, **kwargs):
+    x, y = _preprocess1D(x, y)
     nb = y.shape[0]
     for i in range(nb):
-        plt.plot(x.detach().cpu().flatten(), y[i].detach().cpu().flatten(), *args, **kwargs)
+        plt.plot(x, y[i].flatten(), *args, **kwargs)
 
 
-def plotshaded(plt, x, y, *args, **kwargs):
-    mean_data = torch.mean(y, axis=0).detach().cpu()
-    variance_data = torch.std(y, axis=0).detach().cpu()
-    plt.plot(x.detach().cpu().flatten(), mean_data, *args, **kwargs)
-    plt.fill_between(x.detach().cpu().flatten(), mean_data - variance_data, mean_data + variance_data, alpha=0.2, *args, **kwargs)
-    plt.show()
+def plotshaded(plt, x, y=None, *args, **kwargs):
+    x, y = _preprocess1D(x, y)
+    mean_data = torch.mean(y, axis=0)
+    variance_data = torch.std(y, axis=0)
+    plt.plot(x, mean_data, *args, **kwargs)
+    plt.fill_between(x, mean_data - variance_data, mean_data + variance_data, alpha=0.2, *args, **kwargs)
 
 
-def semilogy(plt, x, y, *args, **kwargs):
+def semilogy(plt, x, y=None, *args, **kwargs):
+    x, y = _preprocess1D(x, y)
     nb = y.shape[0]
     for i in range(nb):
-        plt.semilogy(x.detach().cpu().flatten(), y[i].detach().cpu().flatten(), *args, **kwargs)
+        plt.semilogy(x, y[i].flatten(), *args, **kwargs)
 
 
+# improve pre-processing
 def imshow(plt, xrange, y, *args, **kwargs):
     assert dim(y) == 2
     assert y.shape[0] == 1
@@ -120,7 +135,7 @@ def observable(obs, u, xrange=-1):
     
     output      scalar real'''
     if (is_tensor(obs)):
-        Ou = mv(obs, u)
+        Ou = matmul(obs, u)
     else:
         Ou = obs(u)
     return real(l2inner(u, Ou, xrange))

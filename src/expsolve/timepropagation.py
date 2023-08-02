@@ -5,7 +5,7 @@ import torch
 def evolve(u0, timegrid, stepper, observables={}, storeintermediate=False):
     obsvalues = {}
     for o in observables:
-        obsvalues[o] = torch.zeros(len(timegrid), dtype=torch.float64)
+        obsvalues[o] = torch.zeros((len(timegrid), u0.shape[0]), dtype=torch.float64)
 
     uintermediate = []
 
@@ -17,6 +17,9 @@ def evolve(u0, timegrid, stepper, observables={}, storeintermediate=False):
         t = timegrid[n]
         u = stepper(t, h, u)
         postprocess(n+1, t, u, uintermediate, storeintermediate, obsvalues, observables)
+
+    for o in observables:
+        obsvalues[o] = obsvalues[o].T
 
     return u, obsvalues, uintermediate
 
