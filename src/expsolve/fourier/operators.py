@@ -16,10 +16,12 @@ def diag(v):
 
 # batch revisit : broadcast in both directions: if either v or A is longer in dim 0
 def mv(A, v):
+    shp = v.shape
+    # nb = shp[0]     # number of batches
     if A.dtype == complex128 or v.dtype == complex128:
-        return (complex(A) @ complex(v).flatten()).unsqueeze(dim=0)
+        return (complex(A) @ complex(v).flatten()).reshape(shp)
     else:
-        return (A @ v.flatten()).unsqueeze(dim=0)
+        return (A @ v.flatten()).reshape(shp)
 
 
 

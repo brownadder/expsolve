@@ -18,20 +18,20 @@ s = sin(x)
 ds = ex.diffop(0, 1, s, xrange)   # 1st derivative using diffop
 d2s = ex.diffop(0, 2, s, xrange)  # 2st derivative using diffop
 
-plt.plot(x, s)
-plt.plot(x, real(ds))
-plt.plot(x, real(d2s))
+ex.plot(plt, x, s)
+ex.plot(plt, x, real(ds))
+ex.plot(plt, x, real(d2s))
 plt.show()
 
 # Differrentiating using a (full/dense) differrentiation matrix (expensive)
 D2 = ex.diffmatrix(2, 100, xrange)
-plt.plot(D2 @ s)
+ex.plot(plt, x, ex.mv(D2, s))
 plt.show()
 
 # Three differrent ways to check error in differrentiation
-print(norm(D2 @ s - d2s))
-print(ex.l2norm(D2 @ s - d2s, xrange))
-print(sqrt(real(ex.l2inner(D2 @ s - d2s, D2 @ s - d2s, xrange))))
+print(norm(ex.mv(D2, s) - d2s))
+print(ex.l2norm(ex.mv(D2, s) - d2s, xrange))
+print(sqrt(real(ex.l2inner(ex.mv(D2, s) - d2s, ex.mv(D2, s) - d2s, xrange))))
 
 # The Schrodinger equation iu' = Hu, H = -L + V. Or u' = iLu -iVu.
 n = 200 
@@ -49,16 +49,16 @@ strang = lambda h, u: eVu(h/2, eLu(h, eVu(h/2, u)))     # Strang splitting of th
 
 # Exact flow
 D2 = ex.diffmatrix(2, n, xr)
-H = -D2 + np.diag(V)                                    # explicitly created Hamiltonian matrix
-exact = lambda h, u: matrix_exp(-1j*h*H) @ u            # exact solution by brute force via matrix_exp
+H = -D2 + ex.diag(V)                                    # explicitly created Hamiltonian matrix
+exact = lambda h, u: ex.mv(matrix_exp(-1j*h*H), u)      # exact solution by brute force via matrix_exp
 
 # Error in splitting for large time step
 T = 0.5                                             # solve over [0,T]
 uref = exact(T, u)                                  # exact solution by brute force via matrix_exp
 ustrang = strang(T, u)                              # one step of Strang over [0,T], expect large error
 
-plt.plot(x, abs(uref))
-plt.plot(x, abs(ustrang))
+ex.plot(plt, x, abs(uref))
+ex.plot(plt, x, abs(ustrang))
 plt.show()
 
 print(ex.l2norm(uref-ustrang, xr))
@@ -72,13 +72,13 @@ def runstrang(T, N, u0):
     return u
 
 
-plt.plot(abs(runstrang(T, 1000, u)))   # 1000 steps of Strang splitting
+ex.plot(plt, x, abs(runstrang(T, 1000, u)))   # 1000 steps of Strang splitting
 plt.show()
 
 # Check the rate of convergence of Strang splitting
 Nlist = 2**np.arange(2, 9)
 hlist = T/Nlist
-err = [ex.l2norm(uref-runstrang(T, N, u)) for N in Nlist]
+err = [ex.l2norm(uref-runstrang(T, N, u))[0] for N in Nlist]
 
 print(err)
 print(Nlist)
