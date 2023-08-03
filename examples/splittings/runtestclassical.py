@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import expsolve as es
-import expsolve.splittings.classical as split
-import expsolve.fourier as ex
+import expsolve.discretize.tensorgrid as ex
+import expsolve.evolve.splittings.classical as split
 
 from torch import exp
 
@@ -42,9 +42,9 @@ T = 1
 N = 1000
 timegrid = es.timegrid(T, N)
 
-trotterevolve = es.evolve(u, timegrid, trotterstep, observables)
-strangevolve = es.evolve(u, timegrid, strangstep, observables)
-blanesmoanevolve = es.evolve(u, timegrid, blanesmoanstep, observables)
+trotterevolve = es.solvediffeq(u, timegrid, trotterstep, observables)
+strangevolve = es.solvediffeq(u, timegrid, strangstep, observables)
+blanesmoanevolve = es.solvediffeq(u, timegrid, blanesmoanstep, observables)
 
 obsvalues_trotter = trotterevolve[1]
 obsvalues_strang = strangevolve[1]

@@ -2,7 +2,7 @@
 import torch
 
 # observables should be a dictionary
-def evolve(u0, timegrid, stepper, observables={}, storeintermediate=False):
+def solvediffeq(u0, timegrid, stepper, observables={}, storeintermediate=False):
     obsvalues = {}
     for o in observables:
         obsvalues[o] = torch.zeros((len(timegrid), u0.shape[0]), dtype=torch.float64)
