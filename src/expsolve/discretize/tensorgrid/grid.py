@@ -7,7 +7,8 @@
 
 import numpy as np
 
-from torch import float64, meshgrid, linspace, sum, real, is_tensor
+import torch
+from torch import float64, meshgrid, linspace, sum, real, is_tensor, is_complex
 from torch.linalg import norm
 
 from ...linalg import matmul
@@ -30,7 +31,7 @@ def alldims(u):
     return tuple(range(1, dim(u)+1))
 
 
-def grid1d(n, xrange=[-1, 1]):
+def grid1d(n, xrange=[-1, 1], dtype=float64, device=torch.device('cpu')):
     '''Create a simple one-dimensional grid
 
     n         scalar int
@@ -38,10 +39,10 @@ def grid1d(n, xrange=[-1, 1]):
 
     output    n x 1 float'''
     offset = (xrange[1] - xrange[0]) / (2 * n)
-    return linspace(xrange[0] + offset, xrange[1] - offset, n, dtype=float64).unsqueeze(dim=0)
+    return linspace(xrange[0] + offset, xrange[1] - offset, n, dtype=dtype).unsqueeze(dim=0).to(device)
 
 
-def grid(n, xrange=-1):
+def grid(n, xrange=-1, dtype=float64, device=torch.device('cpu')):
     '''Create an n-dimensional grid
 
     n         dim length array of int
@@ -52,11 +53,11 @@ def grid(n, xrange=-1):
     xrange = fixrange(xrange, dims)
     xlist = []
     for i in range(dims):
-        xlist.append(grid1d(n[i], xrange[i]).flatten())
-    x = meshgrid(xlist, indexing='xy')
+        xlist.append(grid1d(n[i], xrange[i], dtype=dtype, device=device).flatten())
+    x = meshgrid(xlist, indexing='ij')
     x = list(x)
     for i in range(dims):
-        x[i] = (x[i].T).unsqueeze(dim=0)
+        x[i] = (x[i]).unsqueeze(dim=0)
     return x
 
 
@@ -90,7 +91,11 @@ def l2inner(u, v, xrange=-1):
     output      scalar complex'''
     xrange = fixrange(xrange, dim(u))
     s = np.prod((xrange[:, 1] - xrange[:, 0])/u.shape[1:])
-    return s * sum(complexify(u).flatten(start_dim=1).conj() * complexify(v).flatten(start_dim=1), dim=1)
+
+    if is_complex(u) or is_complex(v):
+        return s * sum(complexify(u).flatten(start_dim=1).conj() * complexify(v).flatten(start_dim=1), dim=1)
+    else:
+        return s * sum(u.flatten(start_dim=1) * v.flatten(start_dim=1), dim=1)
 
 
 def observable(obs, u, xrange=-1):

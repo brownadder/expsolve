@@ -36,8 +36,8 @@ def cifft(f, d=-1):
 
 
 # batch revisit
-def cfftmatrix(n):
-    id = eye(n, dtype=float64)
+def cfftmatrix(n, dtype=float64, device=torch.device('cpu')):
+    id = eye(n, dtype=dtype, device=device)
     F = fftshift(fft(id, axis=0), dim=0) / sqrt(tensor(n))
     return F
 
@@ -61,15 +61,14 @@ def fourierfn(symbolfn, fn, u, d, xrange):
     d         scalar int - dimension to apply fn in
     implements fn(d/dx_d) * u'''
     shape = list(u.shape)
-    device = u.device
-    fs = symbolfn(shape[d+1], xrange[d], device)
+    fs = symbolfn(shape[d+1], xrange[d], dtype=u.dtype, device=u.device)
     return cifft(fourierproduct(fn, fs, cfft(u, d), d), d)
 
 
 # in Torch 2.0 do we need to specify device in this way?
 # fouriersymbolfn needs to be passed now - this will allow direct application to finite differences
 # batch revisit
-def tensorizesymbol(symbolfn, n, xrange, device=torch.device('cpu')):
+def tensorizesymbol(symbolfn, n, xrange, dtype=float64, device=torch.device('cpu')):
     '''When a full grid of the fourier symbol is required - this is helpful if
     one is using cfftn (or cfft(u,1:D)), i.e. FFT is first run in all
     directions and then there is pointwise multiplication. This symbol can
@@ -82,7 +81,7 @@ def tensorizesymbol(symbolfn, n, xrange, device=torch.device('cpu')):
     if len(n) < dims:
         # best to specify n for each dim, otherwise max(n) is used
         n = n + [max(n) for i in range(dims-len(n))]  
-    clist = [symbolfn(n[d], xrange[d]).to(device) for d in range(dims)]
+    clist = [symbolfn(n[d], xrange[d], dtype=dtype, device=device) for d in range(dims)]
     cgrid = meshgrid(*clist, indexing='xy')
     for i in range(dims):
         cgrid[i] = cgrid[i].unsqueeze(dim=0)
@@ -90,10 +89,10 @@ def tensorizesymbol(symbolfn, n, xrange, device=torch.device('cpu')):
 
 
 # batch revisit
-def laplaciansymbol(symbolfn, n, xrange, device='cpu'):
-    c = tensorizesymbol(symbolfn, n, xrange, device)
+def laplaciansymbol(symbolfn, n, xrange, dtype=float64, device=torch.device('cpu')):
+    c = tensorizesymbol(symbolfn, n, xrange, dtype=dtype, device=device)
     dims = xrange.shape[0]
-    lapsymb = zeros(c[0].shape, dtype=float64)
+    lapsymb = zeros(c[0].shape, dtype=dtype).to(device)
     for d in range(dims):
         lapsymb = lapsymb + real(c[d]**2)
     return lapsymb

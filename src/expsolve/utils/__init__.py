@@ -1,1 +1,1 @@
-from .datatypes import complexify
+from .datatypes import complexify, complexifytype
