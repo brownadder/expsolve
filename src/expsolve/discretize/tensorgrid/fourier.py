@@ -4,14 +4,13 @@
 import numpy as np
 import torch
 
-from torch import tensor, arange, complex128, real, pi
+from torch import tensor, arange, complex128, real, pi, eye, sqrt, float64
+from torch.fft import fft, fftshift
 
 from ...linalg import diag
 from ...utils import complexifytype
 
 from ..spatial import fixrange
-
-from .spectral import cfftmatrix
 
 
 def fouriersymbol(n, xrange, dtype=complex128, device=torch.device('cpu')):
@@ -22,6 +21,13 @@ def fouriersymbol(n, xrange, dtype=complex128, device=torch.device('cpu')):
     o = tensor(np.mod(n, 2))
     c = 1j * pi * lf * arange(-(n - o) / 2, (n - o) / 2 + o).to(device)
     return c.to(complexifytype(dtype))
+
+
+# batch revisit
+def cfftmatrix(n, dtype=float64, device=torch.device('cpu')):
+    id = eye(n, dtype=dtype, device=device)
+    F = fftshift(fft(id, axis=0), dim=0) / sqrt(tensor(n))
+    return F
 
 
 def diffmatrix(k, n, xrange, dtype=complex128, device=torch.device('cpu')):

@@ -7,9 +7,12 @@
 
 import torch
 
-from torch import meshgrid, eye, zeros, sqrt, tensor, float64, real
+from torch import meshgrid, zeros, float64, real
 from torch.fft import fft, ifft, fftn, ifftn, fftshift, ifftshift
 
+from ..spatial import fixrange
+
+from .fourier import fouriersymbol
 from .grid import dim, alldims
 
 
@@ -35,34 +38,38 @@ def cifft(f, d=-1):
         return ifft(ifftshift(f, d+1), dim=d+1)
 
 
-# batch revisit
-def cfftmatrix(n, dtype=float64, device=torch.device('cpu')):
-    id = eye(n, dtype=dtype, device=device)
-    F = fftshift(fft(id, axis=0), dim=0) / sqrt(tensor(n))
-    return F
-
 
 # batch revisit
-def fourierproduct(fn, c, u, d):
+def fourierproduct(fc, u, d=-1):
     '''Fourier symbol c is along the (d+1)-th dimension - apply fn(c) along this direction'''
-    fc = fn(c)  # this is 1-D:                           n_d
-    dims = dim(u)  # this may be N-D:     n_b x n_1 x n_2 x ... x n_d x .... x n_N
-    nd = len(fc)
-    broadcastshape = [nd if di == d+1 else 1 for di in range(dims+1)]
-    
-    fc = fc.reshape(broadcastshape)        # extend symbol to shape 1 x 1 x ... 1 x n_d x 1 x ... 1
-    return fc * u
-
+    #fc = fn(c)  # this is 1-D:                           n_d
+    if d==-1:
+        return cifft(fc * cfft(u))
+    else:
+        dims = dim(u)  # this may be N-D:     n_b x n_1 x n_2 x ... x n_d x .... x n_N
+        nd = len(fc)
+        broadcastshape = [nd if di == d+1 else 1 for di in range(dims+1)]
+        
+        fc = fc.reshape(broadcastshape)        # extend symbol to shape 1 x 1 x ... 1 x n_d x 1 x ... 1
+        return cifft(fc * cfft(u, d), d)
+        
 
 # batch revisit
-def fourierfn(symbolfn, fn, u, d, xrange):
+def fourierfn(fn, u, d=-1, xrange=-1, symbolfn=fouriersymbol):
     '''fn        function
     u         ndarray of complex numbers
     d         scalar int - dimension to apply fn in
     implements fn(d/dx_d) * u'''
-    shape = list(u.shape)
-    fs = symbolfn(shape[d+1], xrange[d], dtype=u.dtype, device=u.device)
-    return cifft(fourierproduct(fn, fs, cfft(u, d), d), d)
+    xrange = fixrange(xrange, dim(u))
+    shape = list(u.shape)[1:]
+    if d == -1:
+        symbol = tensorizesymbol(symbolfn, shape, xrange, dtype=u.dtype, device=u.device)
+
+    else:
+        symbol = symbolfn(shape[d], xrange[d], dtype=u.dtype, device=u.device)
+
+    fc = fn(symbol)
+    return fourierproduct(fc, u, d)
 
 
 # in Torch 2.0 do we need to specify device in this way?
@@ -77,12 +84,14 @@ def tensorizesymbol(symbolfn, n, xrange, dtype=float64, device=torch.device('cpu
     xrange    dim x 2 length array of reals (for 1D xrange should be [[x0,x1]])
     storefn   for gpu/cpu storage
     creates the fourier symbol in all dimensions'''
-    dims = xrange.shape[0]
+    #dims = xrange.shape[0]
+    dims = len(n)
+    xrange = fixrange(xrange, dims)
     if len(n) < dims:
         # best to specify n for each dim, otherwise max(n) is used
         n = n + [max(n) for i in range(dims-len(n))]  
     clist = [symbolfn(n[d], xrange[d], dtype=dtype, device=device) for d in range(dims)]
-    cgrid = meshgrid(*clist, indexing='xy')
+    cgrid = list(meshgrid(*clist, indexing='ij'))
     for i in range(dims):
         cgrid[i] = cgrid[i].unsqueeze(dim=0)
     return cgrid
@@ -90,8 +99,9 @@ def tensorizesymbol(symbolfn, n, xrange, dtype=float64, device=torch.device('cpu
 
 # batch revisit
 def laplaciansymbol(symbolfn, n, xrange, dtype=float64, device=torch.device('cpu')):
+    dims = len(n)
+    xrange = fixrange(xrange, dims)
     c = tensorizesymbol(symbolfn, n, xrange, dtype=dtype, device=device)
-    dims = xrange.shape[0]
     lapsymb = zeros(c[0].shape, dtype=dtype).to(device)
     for d in range(dims):
         lapsymb = lapsymb + real(c[d]**2)
