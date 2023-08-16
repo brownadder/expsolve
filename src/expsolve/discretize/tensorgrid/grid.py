@@ -74,10 +74,13 @@ def l2norm(u, xrange=-1):
     return np.sqrt(s) * norm(u.flatten(start_dim=1), dim=1)
 
 
-def normalize(u, xrange=-1):
+def normalize(u, xrange=-1, keepreal=False):
     nrm = l2norm(u, xrange)
     nrm = nrm.view(u.shape[0], *([1] * dim(u)))
-    return complexify(u/nrm)
+    if keepreal:
+        return u/nrm
+    else:
+        return complexify(u/nrm)
 
 
 def l2inner(u, v, xrange=-1):
