@@ -16,20 +16,18 @@ def _preprocess1D(x, y=None):
     return X, y
 
 
-def plot(plt, x, y=None, *args, **kwargs):
+def plot(plt, x, y=None, separatelines=False, *args, **kwargs):
     x, y = _preprocess1D(x, y)
-    nb = y.shape[0]
-    for i in range(nb):
-        plt.plot(x, y[i].flatten(), *args, **kwargs)
-
-
-def plotshaded(plt, x, y=None, *args, **kwargs):
-    x, y = _preprocess1D(x, y)
-    mean_data = torch.mean(y, axis=0)
-    variance_data = torch.std(y, axis=0)
-    plt.plot(x, mean_data, *args, **kwargs)
-    plt.fill_between(x, mean_data - variance_data, mean_data + variance_data,
-                     alpha=0.2, *args, **kwargs)
+    if separatelines:
+        nb = y.shape[0]
+        for i in range(nb):
+            plt.plot(x, y[i].flatten(), *args, **kwargs)
+    else:
+        mean_data = torch.mean(y, axis=0)
+        variance_data = torch.std(y, axis=0)
+        plt.plot(x, mean_data, *args, **kwargs)
+        plt.fill_between(x, mean_data - variance_data, mean_data + variance_data,
+                        alpha=0.2, *args, **kwargs)
 
 
 def semilogy(plt, x, y=None, *args, **kwargs):
