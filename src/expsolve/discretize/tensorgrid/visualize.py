@@ -66,8 +66,10 @@ def obsplot(plt, x, y=None, obsnames=None):
 def semilogy(plt, x, y=None, *args, **kwargs):
     x, y = _preprocess1D(x, y)
     nb = y.shape[0]
-    for i in range(nb):
-        plt.semilogy(x, y[i].flatten(), *args, **kwargs)
+
+    plist = [plt.semilogy(x, y[i].flatten(), *args, **kwargs) for i in range(nb)]
+    legendhandles = [(p[0],) for p in plist] 
+    return legendhandles
 
 
 # improve pre-processing
