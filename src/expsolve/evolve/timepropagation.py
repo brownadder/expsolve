@@ -1,5 +1,6 @@
-#import numpy as np
+import numpy as np
 import torch
+import matplotlib.pyplot as plt
 
 # observables should be a dictionary
 def solvediffeq(u0, timegrid, stepper, observables={}, storeintermediate=False):
@@ -34,5 +35,31 @@ def postprocess(n, t, u, uintermediate, storeintermediate, obsvalues, observable
         obsvalues[o][n] = op(u)
 
 
-def timegrid(T, N):
-    return torch.linspace(0, T, int(N)+1, dtype=torch.float64)
+def timegrid(trange, ndt):
+    return torch.linspace(trange[0], trange[1], int(ndt)+1, dtype=torch.float64)
+
+
+def order(u, uref, normfn, trange, ndtlist, stepper, showplot=True):
+    assert len(ndtlist)>2
+
+    hlist = (trange[1]-trange[0])/ndtlist
+    err = [normfn(uref, solvediffeq(u, timegrid(trange, ndt), stepper)[0])[0] for ndt in ndtlist]
+
+    ord2 = (np.round(2.* np.log(err[-3]/err[-1])/np.log(hlist[-3]/hlist[-1]))).numpy().item()
+    ord = ord2/2.
+
+    c = (err[-1]/hlist[-1]**ord)/5.
+
+    if showplot:
+        plt.loglog(hlist, err)
+        plt.loglog(hlist, c * hlist**ord, ':k')
+        plt.xlabel('time step')
+        plt.ylabel('L2 error')
+        if np.mod(ord2,2)==1:
+            ords = f'{ord:2.1f}'
+        else:
+            ords = f'{ord:1.0f}'
+
+        plt.legend(['error in Strang', f'O(h^{ords})'])
+
+    return ord

@@ -37,12 +37,9 @@ def plot(plt, x, y=None, legend=None, separatelines=False, *args, **kwargs):
 
 def obsplot(plt, x, y=None, obsnames=None):
     timegrid = True
-    if not obsnames:
+    #if not obsnames:
         # interpret as (plt, x, y)
-        obsnames = y
-        y = x
-        timegrid = False
-    elif not y:
+    if not y:
         # interpret as (plt, y)
         y = x
         obsnames = None
