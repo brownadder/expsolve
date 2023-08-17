@@ -39,27 +39,39 @@ def timegrid(trange, ndt):
     return torch.linspace(trange[0], trange[1], int(ndt)+1, dtype=torch.float64)
 
 
-def order(u, uref, normfn, trange, ndtlist, stepper, showplot=True):
-    assert len(ndtlist)>2
+def order(u, uref, normfn, trange, ndtlist, steppers, showplot=True):
+    assert len(ndtlist) > 2
 
     hlist = (trange[1]-trange[0])/ndtlist
-    err = [normfn(uref, solvediffeq(u, timegrid(trange, ndt), stepper)[0])[0] for ndt in ndtlist]
 
-    ord2 = (np.round(2.* np.log(err[-3]/err[-1])/np.log(hlist[-3]/hlist[-1]))).numpy().item()
-    ord = ord2/2.
+    ord = {}
+    err = {}
+    c = {}
+    ord2 = {}
+    ords = {}
+    for methodname in steppers:
+        stepper = steppers[methodname]
 
-    c = (err[-1]/hlist[-1]**ord)/5.
+        err[methodname] = [normfn(uref, solvediffeq(u, timegrid(trange, ndt), stepper)[0])[0] for ndt in ndtlist]
+
+        ord2[methodname] = (np.round(2.* np.log(err[methodname][-3]/err[methodname][-1])/np.log(hlist[-3]/hlist[-1]))).numpy().item()
+        ord[methodname] = ord2[methodname]/2.
+
+        c[methodname] = (err[methodname][-1]/hlist[-1]**ord[methodname])/2.
+        if np.mod(ord2[methodname], 2) == 1:
+            ords[methodname] = f'{ord[methodname]:2.1f}'
+        else:
+            ords[methodname] = f'{ord[methodname]:1.0f}'
 
     if showplot:
-        plt.loglog(hlist, err)
-        plt.loglog(hlist, c * hlist**ord, ':k')
+        leg = []
+        for methodname in steppers:
+            plt.loglog(hlist, err[methodname])
+            plt.loglog(hlist, c[methodname] * hlist**ord[methodname], ':k')
+            leg += [f'error in {methodname}', f'O(h^{ords[methodname]})']
+   
         plt.xlabel('time step')
         plt.ylabel('L2 error')
-        if np.mod(ord2,2)==1:
-            ords = f'{ord:2.1f}'
-        else:
-            ords = f'{ord:1.0f}'
+        plt.legend(leg)
 
-        plt.legend(['error in Strang', f'O(h^{ords})'])
-
-    return ord
+    return ord, err
