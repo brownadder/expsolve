@@ -5,16 +5,16 @@ import torch
 
 def stepper(t, h, u0, flowAu, flowBu, alpha, beta):
     u = u0
-    tauA = t   # in time-ordered flows
-    tauB = t   # time either moves with A or with B
+    tA = t   # in time-ordered flows
+    tB = t   # time either moves with A or with B
     assert len(alpha) == len(beta)
     for k in range(len(alpha)):
         if abs(alpha[k]) > 1e-14:
-            u = flowAu(t, tauB, h, alpha[k], u)   
-            tauA = tauA + h*alpha[k]
+            u = flowAu(tB, h, alpha[k], u)   
+            tA = tA + h*alpha[k]
         if abs(beta[k]) > 1e-14:
-            u = flowBu(t, tauA, h, beta[k], u)
-            tauB = tauB + h*beta[k]
+            u = flowBu(tA, h, beta[k], u)
+            tB = tB + h*beta[k]
     return u
 
 
