@@ -18,6 +18,36 @@ def stepper(t, h, u0, flowAu, flowBu, alpha, beta):
     return u
 
 
+# computing jacobian directly and explicitly
+# need to figure this out - it's not clear
+# def diffstepper(t, h, u0, flowAu, flowBu, alpha, beta, jac={}, dflowAu=None, dflowBu=None):
+#     u = u0
+#     tA = t   # in time-ordered flows
+#     tB = t   # time either moves with A or with B
+#     assert len(alpha) == len(beta)
+#     for k in range(len(alpha)):
+#         if abs(alpha[k]) > 1e-14:
+#             u = flowAu(tB, h, alpha[k], u)
+#             for var in jac:
+#                 n = len(jac[var])
+#                 for j in range(n):
+#                     jac[var][j] = flowAu(tB, h, alpha[k], jac[var][j])
+#                     jac[var][j] += dflowAu[var](tB, h, alpha[k], u) # problematic for alpha - should only do when j==k
+
+#             tA = tA + h*alpha[k]
+#         if abs(beta[k]) > 1e-14:
+#             u = flowBu(tA, h, beta[k], u)
+#             for var in jac:
+#                 n = len(jac[var])
+#                 for j in range(n):
+#                     jac[var][j] = flowBu(tA, h, beta[k], jac[var][j])
+#                     jac[var][j] += dflowBu[var](tA, h, beta[k], u)
+
+#             tB = tB + h*beta[k]
+#     return u
+
+
+
 # alpha beta assumed underspecified by exactly 1 parameter
 def consistent(a, b):
     x = list(a)
