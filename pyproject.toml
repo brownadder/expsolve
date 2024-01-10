@@ -1,7 +1,7 @@
 [project]
 name = "expsolve"
-version = "0.1.0"
-description = "Exponential solvers for PDEs of quantum mechanics"
+version = "0.1.2"
+description = "A PyTorch compatible Differentiable Numerical Algorithms package for computational quantum mechanics"
 readme = "README.md"
 license = { text = "MIT" }
 
