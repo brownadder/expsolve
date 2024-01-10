@@ -1,3 +1,1 @@
-from .timepropagation import evolve, timegrid
-import expsolve.fourier
-import expsolve.splittings
+from .evolve.timepropagation import solvediffeq, timegrid, order
