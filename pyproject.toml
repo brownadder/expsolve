@@ -37,3 +37,5 @@ dependencies = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+# To install locally, go to the expsolve directory in terminal and run "pip install -e ."
