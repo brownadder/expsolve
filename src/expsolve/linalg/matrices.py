@@ -16,3 +16,7 @@ def matmul(A, v):
         return torch.matmul(A.type(complex128), u.type(complex128)).mT.reshape(shp)
     else:
         return torch.matmul(A, u).mT.reshape(shp)
+
+
+def batchkron(A, B):
+    return torch.func.vmap(torch.kron)(A, B)
