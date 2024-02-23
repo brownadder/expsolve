@@ -1,1 +1,1 @@
-from .matrices import diag, matmul
+from .matrices import diag, matmul, batchkron

@@ -11,6 +11,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+olddist/
 downloads/
 eggs/
 .eggs/
@@ -122,3 +123,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+*.pypirc
+
+debug-fft.ipynb
