@@ -125,3 +125,5 @@ dmypy.json
 .pyre/
 
 *.pypirc
+
+debug-fft.ipynb
