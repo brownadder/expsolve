@@ -35,7 +35,12 @@ def _plothelper(plt, x, y=None, separatelines=False, *args, **kwargs):
     return handles
 
 
-def plot(ax, linespecs, y=None, separatelines=False, xlim=None, ylim=None, xlabel=None, ylabel=None, legend=True, grid=True, bgcolor='#FEFBF6', *args, **kwargs):
+def plot(ax, linespecs, y=None, separatelines=False, 
+         xlim=None, ylim=None, xlabel=None, ylabel=None, 
+         legend=True, grid=True, bgcolor='#FEFBF6', 
+         xscale='linear', yscale='linear',
+         *args, **kwargs):
+    
     if bgcolor is not None:
             ax.set_facecolor(bgcolor)
         
@@ -53,6 +58,9 @@ def plot(ax, linespecs, y=None, separatelines=False, xlim=None, ylim=None, xlabe
     
     if ylabel:
         ax.set_ylabel(ylabel)
+
+    ax.set_xscale(xscale)
+    ax.set_yscale(yscale)
 
     if isinstance(linespecs, list):
         handles = []
@@ -79,41 +87,27 @@ def plot(ax, linespecs, y=None, separatelines=False, xlim=None, ylim=None, xlabe
     else:
         return _plothelper(ax, linespecs, y=y, separatelines=separatelines, *args, **kwargs)
 
-        
+def obsplot(plt, timegrid, obsvalues, obsnames=None):
+    if obsnames:
+        obsspecs = [((timegrid, obsvalues[key]), {}, key) for key in obsnames]
+    else:
+        obsspecs = [((timegrid, x[1]), {}, x[0]) for x in obsvalues.items()]
+
+    fig, ax = plt.subplots()
+    plot(ax, linespecs=obsspecs, xlabel='t')
+    plt.show()
 
 
-# def obsplot(plt, x, y=None, obsnames=None):
-#     timegrid = True
-#     #if not obsnames:
-#         # interpret as (plt, x, y)
-#     if not y:
-#         # interpret as (plt, y)
-#         y = x
-#         obsnames = None
-#         timegrid = False
-
-#     if not obsnames:
-#         obsnames = list(y.keys())
-
-#     legendhandles = []
-#     for o in obsnames:
-#         if timegrid:
-#             lh = plot(plt, x, y[o])
-#         else:
-#             lh = plot(plt, y[o])
-        
-#         legendhandles.append(lh[0])
-
-#     plt.legend(legendhandles, obsnames)
+def semilogy(*args, **kwargs):
+    return plot(*args, yscale='log', **kwargs)
 
 
-def semilogy(plt, x, y=None, *args, **kwargs):
-    x, y = _preprocess1D(x, y)
-    nb = y.shape[0]
+def semilogx(*args, **kwargs):
+    return plot(*args, xscale='log', **kwargs)
 
-    plist = [plt.semilogy(x, y[i].flatten(), *args, **kwargs) for i in range(nb)]
-    legendhandles = [(p[0],) for p in plist] 
-    return legendhandles
+
+def loglog(*args, **kwargs):
+    return plot(*args, yscale='log', xscale='log', **kwargs)
 
 
 # improve pre-processing
