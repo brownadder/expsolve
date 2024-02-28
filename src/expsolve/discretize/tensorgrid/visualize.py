@@ -48,7 +48,7 @@ def plot(plt, x, y=None, legend=None, separatelines=False, handles=None, *args, 
     return handles
 
 
-def plotlines(ax, linespecs, xlim=None, ylim=None, xlabel=None, ylabel=None, legend=True, grid=True, bgcolor='#FEFBF6'):
+def plotfancy(ax, linespecs, xlim=None, ylim=None, xlabel=None, ylabel=None, legend=True, grid=True, bgcolor='#FEFBF6'):
     if bgcolor is not None:
         ax.set_facecolor(bgcolor)
     
@@ -69,9 +69,13 @@ def plotlines(ax, linespecs, xlim=None, ylim=None, xlabel=None, ylabel=None, leg
 
     for linespec in linespecs:
         line = linespec[0]
-        args = linespec[1]
+
         (x, y) = line
-        plot(ax, x, y, **args)
+        if len(linespec)>=2:
+            args = linespec[1]
+            plot(ax, x, y, **args)
+        else:
+            plot(ax, x, y)
 
     if legend:
         legendentries = [linespec[2] for linespec in linespecs]
