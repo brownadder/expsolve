@@ -9,6 +9,15 @@ def complexifytype(dtype):
     elif dtype == float16 or dtype == complex32:
         return complex32
 
+def realifytype(dtype):
+    if dtype == float64 or dtype == complex128:
+        return float64
+    elif dtype == float32 or dtype == complex64:
+        return float32
+    elif dtype == float16 or dtype == complex32:
+        return float16
+
+
 
 # renamed to complexify to avoid conflict with Python's complex
 def complexify(u):

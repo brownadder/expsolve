@@ -8,7 +8,7 @@ from torch import tensor, arange, complex128, real, pi, eye, sqrt, float64
 from torch.fft import fft, fftshift
 
 from ...linalg import diag
-from ...utils import complexifytype
+from ...utils import complexifytype, realifytype
 
 from ..spatial import fixrange
 
@@ -19,7 +19,7 @@ def fouriersymbol(n, xrange, dtype=complex128, device=torch.device('cpu')):
     creates the fourier symbol in a single dimension'''
     lf = 2 / (xrange[1] - xrange[0])
     o = tensor(np.mod(n, 2))
-    c = 1j * pi * lf * arange(-(n - o) / 2, (n - o) / 2 + o).to(device)
+    c = 1j * pi * lf * arange(-(n - o) / 2, (n - o) / 2 + o, dtype=realifytype(dtype)).to(device)
     return c.to(complexifytype(dtype))
 
 
