@@ -17,41 +17,28 @@ def _preprocess1D(x, y=None):
     return X, y
 
 
-def plot(plt, x, y=None, legend=None, separatelines=False, handles=None, *args, **kwargs):
+def _plothelper(plt, x, y=None, separatelines=False, *args, **kwargs):
     x, y = _preprocess1D(x, y)
     if separatelines or y.shape[0]==1:
         nb = y.shape[0]
-        if handles is None:
-            plist = [plt.plot(x, y[i].flatten(), *args, **kwargs) for i in range(nb)]
-            handles = [(p[0],) for p in plist] 
-        else:
-            for i in range(nb):
-                handles[i][0].set_ydata(y[i].flatten())
+        plist = [plt.plot(x, y[i].flatten(), *args, **kwargs) for i in range(nb)]
+        handles = [(p[0],) for p in plist] 
     else:
         mean_data = torch.mean(y, axis=0)
         variance_data = torch.std(y, axis=0)
-
-        if handles is None:
-            pmean = plt.plot(x, mean_data, *args, **kwargs)
-            plt.fill_between(x, mean_data - variance_data, mean_data + variance_data,
-                            alpha=0.2, *args, **kwargs) 
-            pvar = plt.fill(np.NaN, np.NaN, alpha=0.2, linewidth=0, *args, **kwargs)
-            handles = [(pmean, pvar)] 
-        else:
-            plt.collections.clear()
-            handles[0][0].set_ydata(x, mean_data)
-            plt.fill_between(x, mean_data - variance_data, mean_data + variance_data,
-                            alpha=0.2, *args, **kwargs)
-            plt.fill(np.NaN, np.NaN, alpha=0.2, linewidth=0, *args, **kwargs)
-            handles = [(pmean, pvar)]
-            
+        pmean = plt.plot(x, mean_data, *args, **kwargs)
+        plt.fill_between(x, mean_data - variance_data, mean_data + variance_data,
+                        alpha=0.2, *args, **kwargs) 
+        pvar = plt.fill(np.NaN, np.NaN, alpha=0.2, linewidth=0, *args, **kwargs)
+        handles = [(pmean, pvar)] 
+        
     return handles
 
 
-def plotfancy(ax, linespecs, xlim=None, ylim=None, xlabel=None, ylabel=None, legend=True, grid=True, bgcolor='#FEFBF6'):
+def plot(ax, linespecs, y=None, separatelines=False, xlim=None, ylim=None, xlabel=None, ylabel=None, legend=True, grid=True, bgcolor='#FEFBF6', *args, **kwargs):
     if bgcolor is not None:
-        ax.set_facecolor(bgcolor)
-    
+            ax.set_facecolor(bgcolor)
+        
     if xlim is not None:
         ax.set_xlim(xlim[0],xlim[1])
 
@@ -67,20 +54,32 @@ def plotfancy(ax, linespecs, xlim=None, ylim=None, xlabel=None, ylabel=None, leg
     if ylabel:
         ax.set_ylabel(ylabel)
 
-    for linespec in linespecs:
-        line = linespec[0]
+    if isinstance(linespecs, list):
+        handles = []
+        for linespec in linespecs:
+            line = linespec[0]
 
-        (x, y) = line
-        if len(linespec)>=2:
-            args = linespec[1]
-            plot(ax, x, y, **args)
-        else:
-            plot(ax, x, y)
+            (x, y) = line
+            if len(linespec)>=2:
+                lineargs = linespec[1]
+                h = _plothelper(ax, x, y, separatelines=separatelines, *args, **lineargs, **kwargs)[0][0]
+            else:
+                h = _plothelper(ax, x, y, separatelines=separatelines, *args, **kwargs)[0][0]
+            
+            if isinstance(h, list):
+                h = h[0]
 
-    if legend:
-        legendentries = [linespec[2] for linespec in linespecs]
-        ax.legend(legendentries)
-    
+            handles.append(h)
+
+        if legend:
+            legendentries = [linespec[2] for linespec in linespecs]
+            ax.legend(handles, legendentries)
+        
+        return handles
+    else:
+        return _plothelper(ax, linespecs, y=y, separatelines=separatelines, *args, **kwargs)
+
+        
 
 
 def obsplot(plt, x, y=None, obsnames=None):
