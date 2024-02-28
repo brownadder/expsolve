@@ -17,22 +17,66 @@ def _preprocess1D(x, y=None):
     return X, y
 
 
-def plot(plt, x, y=None, legend=None, separatelines=False, *args, **kwargs):
+def plot(plt, x, y=None, legend=None, separatelines=False, handles=None, *args, **kwargs):
     x, y = _preprocess1D(x, y)
     if separatelines or y.shape[0]==1:
         nb = y.shape[0]
-        plist = [plt.plot(x, y[i].flatten(), *args, **kwargs) for i in range(nb)]
-        legendhandles = [(p[0],) for p in plist] 
+        if handles is None:
+            plist = [plt.plot(x, y[i].flatten(), *args, **kwargs) for i in range(nb)]
+            handles = [(p[0],) for p in plist] 
+        else:
+            for i in range(nb):
+                handles[i][0].set_ydata(y[i].flatten())
     else:
         mean_data = torch.mean(y, axis=0)
         variance_data = torch.std(y, axis=0)
-        pmean = plt.plot(x, mean_data, *args, **kwargs)
-        plt.fill_between(x, mean_data - variance_data, mean_data + variance_data,
-                        alpha=0.2, *args, **kwargs)
-        pvar = plt.fill(np.NaN, np.NaN, alpha=0.2, linewidth=0, *args, **kwargs)
-        legendhandles = [(pmean[0], pvar[0])]
+
+        if handles is None:
+            pmean = plt.plot(x, mean_data, *args, **kwargs)
+            plt.fill_between(x, mean_data - variance_data, mean_data + variance_data,
+                            alpha=0.2, *args, **kwargs) 
+            pvar = plt.fill(np.NaN, np.NaN, alpha=0.2, linewidth=0, *args, **kwargs)
+            handles = [(pmean, pvar)] 
+        else:
+            plt.collections.clear()
+            handles[0][0].set_ydata(x, mean_data)
+            plt.fill_between(x, mean_data - variance_data, mean_data + variance_data,
+                            alpha=0.2, *args, **kwargs)
+            plt.fill(np.NaN, np.NaN, alpha=0.2, linewidth=0, *args, **kwargs)
+            handles = [(pmean, pvar)]
+            
+    return handles
+
+
+def plotlines(ax, linespecs, xlim=None, ylim=None, xlabel=None, ylabel=None, legend=True, grid=True, bgcolor='#FEFBF6'):
+    if bgcolor is not None:
+        ax.set_facecolor(bgcolor)
     
-    return legendhandles
+    if xlim is not None:
+        ax.set_xlim(xlim[0],xlim[1])
+
+    if ylim is not None:
+        ax.set_ylim(ylim[0],ylim[1])
+
+    if grid:
+        ax.grid(True)
+
+    if xlabel:
+        ax.set_xlabel(xlabel)
+    
+    if ylabel:
+        ax.set_ylabel(ylabel)
+
+    for linespec in linespecs:
+        line = linespec[0]
+        args = linespec[1]
+        (x, y) = line
+        plot(ax, x, y, **args)
+
+    if legend:
+        legendentries = [linespec[2] for linespec in linespecs]
+        ax.legend(legendentries)
+    
 
 
 def obsplot(plt, x, y=None, obsnames=None):
