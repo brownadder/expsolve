@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 
-def animate(drawframe, N, filename, speedfactor=1, border=False, size=(1920, 1440), dpi=300, fps=30, loop=0):
+def animate(drawframe, N, filename, speedfactor=1, border=False, size=(1920, 1440), dpi=300, fps=30):
     with plt.ioff():
         fig, ax = plt.subplots(figsize=(size[0]/dpi, size[1]/dpi))
         
@@ -25,4 +25,4 @@ def animate(drawframe, N, filename, speedfactor=1, border=False, size=(1920, 144
 
         writergif = animation.PillowWriter(fps = fps)
         writergif.setup(fig, filename, dpi = dpi) 
-        ani.save(filename=filename, writer=writergif, loop=loop)
+        ani.save(filename=filename, writer=writergif)
