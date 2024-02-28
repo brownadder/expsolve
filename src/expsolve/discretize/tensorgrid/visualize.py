@@ -82,29 +82,29 @@ def plot(ax, linespecs, y=None, separatelines=False, xlim=None, ylim=None, xlabe
         
 
 
-def obsplot(plt, x, y=None, obsnames=None):
-    timegrid = True
-    #if not obsnames:
-        # interpret as (plt, x, y)
-    if not y:
-        # interpret as (plt, y)
-        y = x
-        obsnames = None
-        timegrid = False
+# def obsplot(plt, x, y=None, obsnames=None):
+#     timegrid = True
+#     #if not obsnames:
+#         # interpret as (plt, x, y)
+#     if not y:
+#         # interpret as (plt, y)
+#         y = x
+#         obsnames = None
+#         timegrid = False
 
-    if not obsnames:
-        obsnames = list(y.keys())
+#     if not obsnames:
+#         obsnames = list(y.keys())
 
-    legendhandles = []
-    for o in obsnames:
-        if timegrid:
-            lh = plot(plt, x, y[o])
-        else:
-            lh = plot(plt, y[o])
+#     legendhandles = []
+#     for o in obsnames:
+#         if timegrid:
+#             lh = plot(plt, x, y[o])
+#         else:
+#             lh = plot(plt, y[o])
         
-        legendhandles.append(lh[0])
+#         legendhandles.append(lh[0])
 
-    plt.legend(legendhandles, obsnames)
+#     plt.legend(legendhandles, obsnames)
 
 
 def semilogy(plt, x, y=None, *args, **kwargs):
