@@ -11,7 +11,7 @@ def solvediffeq(u0, timegrid, stepper, observables={}, storeintermediate=False):
     uintermediate = []
 
     u = u0
-    postprocess(0, 0, u, uintermediate, storeintermediate, obsvalues, observables)
+    postprocess(0, timegrid[0], u, uintermediate, storeintermediate, obsvalues, observables)
 
     for n in range(len(timegrid)-1):
         h = timegrid[n+1]-timegrid[n]
@@ -32,7 +32,7 @@ def postprocess(n, t, u, uintermediate, storeintermediate, obsvalues, observable
 
     for o in observables:
         op = observables[o]
-        obsvalues[o][n] = op(u)
+        obsvalues[o][n] = op(u, t)
 
 
 def timegrid(trange, ndt):
