@@ -111,15 +111,18 @@ def loglog(*args, **kwargs):
     return plot(*args, yscale='log', xscale='log', **kwargs)
 
 
-# improve pre-processing
-def imshow(ax, imspecs, 
+def imshow(ax, imspecs, dummy=None,
          xlim=None, ylim=None, xlabel='x', ylabel='y', 
          grid=False, bgcolor='white', 
          *args, **kwargs):
         
+    if dummy is not None:
+        xr = imspecs
+        y = dummy
+        imspecs =  [(xr, y, mpl.colormaps['RdYlBu'], torch.ones_like(y), 'bicubic')]
+
     if bgcolor is not None:
         ax.set_facecolor(bgcolor)
-
 
     if xlim is not None:
         ax.set_xlim(xlim[0],xlim[1])
@@ -146,46 +149,7 @@ def imshow(ax, imspecs,
         alpha = torch.min(torch.ones(n[0],n[1]), alpha.squeeze(0))
 
         region = list(fixrange(xrange, 2).flatten())
-        ax.imshow(u, extent=region, cmap=colormap, alpha=alpha, 
+        ax.imshow(u.T, extent=region, cmap=colormap, alpha=alpha.T, 
                     interpolation=interp, *args, **kwargs)
 
-
-    # assert dim(y) == 2
-    # assert y.shape[0] == 1
-    # u = y.
-    
-    # 
-
-
-    # u = y.reshape(y.shape[1:])
-    # n = u.shape
-    # ax.imshow(u, extent=region, *args, **kwargs)
-
-    # real(u), abs(real(u)), mpl.colormaps['Oranges'], 10.0
-    # imag(u), abs(imag(u)), mpl.colormaps['Blues'], 10.0
-
-    
-
-    # if phasebased:  
-    #     phase = lambda u: torch.arctan2(torch.imag(u), torch.real(u))
-    #     phasescaled = lambda u: 0.5+phase(u)/(2*torch.pi)
-
-    #     ax.imshow(xrange, phasescaled(u), cmap=mpl.colormaps['RdYlBu'], 
-    #             alpha=torch.min(torch.ones(n[0],n[1]), 10*abs(u)), 
-    #                 interpolation='bicubic')
-    
-    # else:   
-    #     ax.imshow(xrange, torch.imag(y), cmap=mpl.colormaps['Blues'], 
-    #             alpha=torch.min(torch.ones(n[0], n[1]), 
-    #                             10*abs(torch.imag(u))), 
-    #                             interpolation='bicubic',
-    #                             extent=region, *args, **kwargs)
-        
-    #     ax.imshow(xrange, torch.real(y), cmap=mpl.colormaps['Oranges'], 
-    #             alpha=torch.min(torch.ones(n[0],n[1]), 
-    #                             10*abs(torch.real(u))), 
-    #                             interpolation='bicubic',
-    #                             extent=region, *args, **kwargs)
-
-    
 
