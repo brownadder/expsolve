@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import matplotlib as mpl
 
 from ..spatial import fixrange
 
@@ -110,11 +111,45 @@ def loglog(*args, **kwargs):
     return plot(*args, yscale='log', xscale='log', **kwargs)
 
 
-# improve pre-processing
-def imshow(plt, xrange, y, *args, **kwargs):
-    assert dim(y) == 2
-    assert y.shape[0] == 1
-    region = list(fixrange(xrange, 2).flatten())
-    plt.imshow(y.reshape(y.shape[1:]), extent=region)
+def imshow(ax, imspecs, dummy=None,
+         xlim=None, ylim=None, xlabel='x', ylabel='y', 
+         grid=False, bgcolor='white', 
+         *args, **kwargs):
+        
+    if dummy is not None:
+        xr = imspecs
+        y = dummy
+        imspecs =  [(xr, y, mpl.colormaps['RdYlBu'], torch.ones_like(y), 'bicubic')]
+
+    if bgcolor is not None:
+        ax.set_facecolor(bgcolor)
+
+    if xlim is not None:
+        ax.set_xlim(xlim[0],xlim[1])
+
+    if ylim is not None:
+        ax.set_ylim(ylim[0],ylim[1])
+
+    if xlabel:
+        ax.set_xlabel(xlabel)
+    
+    if ylabel:
+        ax.set_ylabel(ylabel)
+    
+    if grid:
+        ax.grid(True)
+
+    for (xrange, u, colormap, alpha, interp) in imspecs:
+        assert u.shape==alpha.shape
+        assert dim(u) == 2 
+        assert u.shape[0] == 1
+        u = u.squeeze(0)
+        n = u.shape
+
+        alpha = torch.min(torch.ones(n[0],n[1]), alpha.squeeze(0))
+
+        region = list(fixrange(xrange, 2).flatten())
+        ax.imshow(u.T, extent=region, cmap=colormap, alpha=alpha.T, 
+                    interpolation=interp, *args, **kwargs)
 
 
