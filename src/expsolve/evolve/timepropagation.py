@@ -3,7 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 
 # observables should be a dictionary
-def solvediffeq(u0, timegrid, stepper, observables={}, storeintermediate=False):
+def solvediffeq(u0, timegrid, stepper, observables={}, storeintermediate=False, aux=None):
     obsvalues = {}
     for o in observables:
         obsvalues[o] = torch.zeros((len(timegrid), u0.shape[0]), dtype=torch.float64)
@@ -11,12 +11,15 @@ def solvediffeq(u0, timegrid, stepper, observables={}, storeintermediate=False):
     uintermediate = []
 
     u = u0
-    postprocess(0, 0, u, uintermediate, storeintermediate, obsvalues, observables)
+    postprocess(0, timegrid[0], u, uintermediate, storeintermediate, obsvalues, observables)
 
     for n in range(len(timegrid)-1):
         h = timegrid[n+1]-timegrid[n]
         t = timegrid[n]
-        u = stepper(t, h, u)
+        if aux is None:
+            u = stepper(t, h, u)
+        else:
+            u, aux = stepper(t, h, u, aux)
         postprocess(n+1, t, u, uintermediate, storeintermediate, obsvalues, observables)
 
     for o in observables:
@@ -32,7 +35,7 @@ def postprocess(n, t, u, uintermediate, storeintermediate, obsvalues, observable
 
     for o in observables:
         op = observables[o]
-        obsvalues[o][n] = op(u)
+        obsvalues[o][n] = op(u, t)
 
 
 def timegrid(trange, ndt):
