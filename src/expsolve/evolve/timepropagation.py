@@ -42,7 +42,7 @@ def timegrid(trange, ndt):
     return torch.linspace(trange[0], trange[1], int(ndt)+1, dtype=torch.float64)
 
 
-def order(u, uref, normfn, trange, ndtlist, steppers, showplot=True):
+def order(u, uref, normfn, trange, ndtlist, steppers, showplot=True, aux=None):
     assert len(ndtlist) > 2
 
     hlist = (trange[1]-trange[0])/ndtlist
@@ -55,7 +55,7 @@ def order(u, uref, normfn, trange, ndtlist, steppers, showplot=True):
     for methodname in steppers:
         stepper = steppers[methodname]
 
-        err[methodname] = [normfn(uref, solvediffeq(u, timegrid(trange, ndt), stepper)[0])[0] for ndt in ndtlist]
+        err[methodname] = [normfn(uref, solvediffeq(u, timegrid(trange, ndt), stepper, aux=aux)[0])[0] for ndt in ndtlist]
 
         ord2[methodname] = (np.round(2.* np.log(err[methodname][-3]/err[methodname][-1])/np.log(hlist[-3]/hlist[-1]))).numpy().item()
         ord[methodname] = ord2[methodname]/2.
@@ -76,5 +76,6 @@ def order(u, uref, normfn, trange, ndtlist, steppers, showplot=True):
         plt.xlabel('time step')
         plt.ylabel('L2 error')
         plt.legend(leg)
+        plt.grid(True)
 
     return ord, err
