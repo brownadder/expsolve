@@ -1,5 +1,6 @@
 import torch
 from torch import complex128
+from functools import reduce
 
 
 def diag(v):
@@ -16,6 +17,10 @@ def matmul(A, v):
         return torch.matmul(A.type(complex128), u.type(complex128)).mT.reshape(shp)
     else:
         return torch.matmul(A, u).mT.reshape(shp)
+
+
+def kron(*args):
+    return reduce(torch.kron, args)
 
 
 def batchkron(A, B):
