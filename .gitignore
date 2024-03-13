@@ -125,3 +125,7 @@ dmypy.json
 .pyre/
 
 *.pypirc
+
+debug-fft.ipynb
+
+examples/tutorials/04_graphs/data/MNIST/raw/

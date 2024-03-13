@@ -3,7 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 
 # observables should be a dictionary
-def solvediffeq(u0, timegrid, stepper, observables={}, storeintermediate=False):
+def solvediffeq(u0, timegrid, stepper, observables={}, storeintermediate=False, aux=None):
     obsvalues = {}
     for o in observables:
         obsvalues[o] = torch.zeros((len(timegrid), u0.shape[0]), dtype=torch.float64)
@@ -11,13 +11,16 @@ def solvediffeq(u0, timegrid, stepper, observables={}, storeintermediate=False):
     uintermediate = []
 
     u = u0
-    postprocess(0, 0, u, uintermediate, storeintermediate, obsvalues, observables)
+    postprocess(0, timegrid[0], u, uintermediate, storeintermediate, obsvalues, observables)
 
     for n in range(len(timegrid)-1):
         h = timegrid[n+1]-timegrid[n]
         t = timegrid[n]
-        u = stepper(t, h, u)
-        postprocess(n+1, t, u, uintermediate, storeintermediate, obsvalues, observables)
+        if aux is None:
+            u = stepper(t, h, u)
+        else:
+            u, aux = stepper(t, h, u, aux)
+        postprocess(n+1, t+h, u, uintermediate, storeintermediate, obsvalues, observables)
 
     for o in observables:
         obsvalues[o] = obsvalues[o].T
@@ -32,14 +35,14 @@ def postprocess(n, t, u, uintermediate, storeintermediate, obsvalues, observable
 
     for o in observables:
         op = observables[o]
-        obsvalues[o][n] = op(u)
+        obsvalues[o][n] = op(u, t)
 
 
 def timegrid(trange, ndt):
     return torch.linspace(trange[0], trange[1], int(ndt)+1, dtype=torch.float64)
 
 
-def order(u, uref, normfn, trange, ndtlist, steppers, showplot=True):
+def order(u, uref, normfn, trange, ndtlist, steppers, showplot=True, aux=None):
     assert len(ndtlist) > 2
 
     hlist = (trange[1]-trange[0])/ndtlist
@@ -52,7 +55,7 @@ def order(u, uref, normfn, trange, ndtlist, steppers, showplot=True):
     for methodname in steppers:
         stepper = steppers[methodname]
 
-        err[methodname] = [normfn(uref, solvediffeq(u, timegrid(trange, ndt), stepper)[0])[0] for ndt in ndtlist]
+        err[methodname] = [normfn(uref, solvediffeq(u, timegrid(trange, ndt), stepper, aux=aux)[0])[0] for ndt in ndtlist]
 
         ord2[methodname] = (np.round(2.* np.log(err[methodname][-3]/err[methodname][-1])/np.log(hlist[-3]/hlist[-1]))).numpy().item()
         ord[methodname] = ord2[methodname]/2.
@@ -73,5 +76,6 @@ def order(u, uref, normfn, trange, ndtlist, steppers, showplot=True):
         plt.xlabel('time step')
         plt.ylabel('L2 error')
         plt.legend(leg)
+        plt.grid(True)
 
     return ord, err
