@@ -14,103 +14,32 @@ from ...linalg import matmul
 from ...utils import complexify
 
 from ..spatial import fixrange
+from itertools import product
 
 
-def dim(u):
-    '''Returns the dimensions of the graph
 
-    u             discretised function
+def honeycombgrid(h, n, active = lambda x, y: True, cx = [0., 0.]):
+    cx = np.array(cx)
+    c = (h/np.sqrt(3))*np.array([(col * 3/2, (row + (1/2 if col%2==1 else 0)) * np.sqrt(3)) for (col, row) in product(range(n[0]), range(n[1]))])
+    ct = c.T
+    cr = np.array([[np.min(ct[0]), np.max(ct[0])], [np.min(ct[1]), np.max(ct[1])]])
+    cav = np.array([(cr[0][0] + cr[0][1])/2, (cr[1][0] + cr[1][1])/2])
+    c  = c - cav.T + cx.T
+    centers = np.array([(x,y) for (x,y) in c if active(x,y)])
 
-    output        scalar int
-    '''
-    return len(list(u.shape))-1
+    ct = centers.T
+    cr = np.array([[np.min(ct[0]), np.max(ct[0])], [np.min(ct[1]), np.max(ct[1])]])
+    xr =  cr + h*np.array([[-1/np.sqrt(3)-0.05, 1/np.sqrt(3)+0.05], [-0.5, 0.5]])
 
-
-def alldims(u):
-    return tuple(range(1, dim(u)+1))
-
-
-def graph2d(n, xrange=[-1, 1], dtype=float64, device=torch.device('cpu')):
-    '''Create a simple one-dimensional grid
-
-    n         scalar int
-    xrange    2 length list of reals
-
-    output    n x 1 float'''
-    offset = (xrange[1] - xrange[0]) / (2 * n)
-    return linspace(xrange[0] + offset, xrange[1] - offset, n, dtype=dtype).unsqueeze(dim=0).to(device)
-
-
-def grid(n, xrange=-1, dtype=float64, device=torch.device('cpu')):
-    '''Create an n-dimensional grid
-
-    n         dim length array of int
-    xrange    dim x 2 ndarray of reals (if a light of length 2 is provided it is copied in all dims)
-
-    output    dim length list of ndarrays, each of size n_1 x n_2 x ... x n_N'''
-    dims = len(n)
-    xrange = fixrange(xrange, dims)
-    xlist = []
-    for i in range(dims):
-        xlist.append(grid1d(n[i], xrange[i], dtype=dtype, device=device).flatten())
-    x = meshgrid(xlist, indexing='ij')
-    x = list(x)
-    for i in range(dims):
-        x[i] = (x[i]).unsqueeze(dim=0)
-    return x
-
-
-def l2norm(u, xrange=-1):
-    '''Computes the L2 norm ||u||
+    nc = len(centers)
     
-    u           complex-valued discretised function discretised
-                on domain described by xrange
-    xrange      dims x 2
+    centers = torch.tensor(centers)
 
-    output      scalar real'''
-    xrange = fixrange(xrange, dim(u))
-    s = np.prod((xrange[:, 1] - xrange[:, 0])/u.shape[1:])
-    return np.sqrt(s) * norm(u.flatten(start_dim=1), dim=1)
+    c = centers.T
+    cx = c[0].unsqueeze(0)
+    cy = c[1].unsqueeze(0)
+    dist = torch.sqrt((cx - cx.T)**2 + (cy - cy.T)**2)
 
-
-def normalize(u, xrange=-1, keepreal=False):
-    nrm = l2norm(u, xrange)
-    nrm = nrm.view(u.shape[0], *([1] * dim(u)))
-    if keepreal:
-        return u/nrm
-    else:
-        return complexify(u/nrm)
+    return centers, torch.tensor(xr), nc, dist
 
 
-def l2inner(u, v, xrange=-1):
-    '''Computes the complex L2 inner product <u, v>
-    which is conjugate linear in u and linear in v
-    
-    u,v         complex-valued discretised functions discretised
-                on domain described by xrange
-    xrange      dims x 2 ndarray in higher dimensions, or a list in 1d (default [-1,1])
-    
-    output      scalar complex'''
-    xrange = fixrange(xrange, dim(u))
-    s = np.prod((xrange[:, 1] - xrange[:, 0])/u.shape[1:])
-
-    if is_complex(u) or is_complex(v):
-        return s * sum(complexify(u).flatten(start_dim=1).conj() * complexify(v).flatten(start_dim=1), dim=1)
-    else:
-        return s * sum(u.flatten(start_dim=1) * v.flatten(start_dim=1), dim=1)
-
-
-def observable(obs, u, xrange=-1):
-    '''Computes the expected value of the observable O in state u, i.e. <u, O u>
-    
-    obs         Hermitian operator or matrix
-    u           complex-valued discretised functions discretised
-                on domain described by xrange
-    xrange      dims x 2 ndarray in higher dimensions, or a list in 1d (default [-1,1])
-    
-    output      scalar real'''
-    if (is_tensor(obs)):
-        Ou = matmul(obs, u)
-    else:
-        Ou = obs(u)
-    return real(l2inner(u, Ou, xrange))
