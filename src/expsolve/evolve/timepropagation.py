@@ -20,7 +20,7 @@ def solvediffeq(u0, timegrid, stepper, observables={}, storeintermediate=False, 
             u = stepper(t, h, u)
         else:
             u, aux = stepper(t, h, u, aux)
-        postprocess(n+1, t, u, uintermediate, storeintermediate, obsvalues, observables)
+        postprocess(n+1, t+h, u, uintermediate, storeintermediate, obsvalues, observables)
 
     for o in observables:
         obsvalues[o] = obsvalues[o].T
