@@ -150,6 +150,6 @@ def imshow(ax, imspecs, dummy=None,
 
         region = list(fixrange(xrange, 2).flatten())
         ax.imshow(u.T, extent=region, cmap=colormap, alpha=alpha.T, 
-                    interpolation=interp, *args, **kwargs)
+                    interpolation=interp, origin='lower', *args, **kwargs)
 
 
