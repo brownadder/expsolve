@@ -2,7 +2,7 @@
 
 pip install expsolve 
 
-A PyTorch compatible Differentiable Numerical Algorithms package for computational quantum mechanics. 
+A differentiable numerical algorithms package for computational quantum mechanics. 
 
 Includes time-propagators based on splitting and composition methods, exponential integrators, Magnus expansion etc. 
 
