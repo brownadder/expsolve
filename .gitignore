@@ -129,3 +129,5 @@ dmypy.json
 debug-fft.ipynb
 
 examples/tutorials/04_graphs/data/
+
+examples/tutorials/.DS_Store
